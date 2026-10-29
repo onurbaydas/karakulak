@@ -138,6 +138,8 @@ jobs:
   # Boots the ISO and checks that the session comes up.
   boot:
     needs: iso
+    # Runs even when signing failed earlier; only the ISO matters here.
+    if: ${{ !cancelled() && needs.iso.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

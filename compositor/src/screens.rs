@@ -30,8 +30,13 @@ fn load() -> Value {
         .unwrap_or_else(|| json!({}))
 }
 
+/// Scales offered: 100% to 300% in 25% steps.
+pub fn valid_scale(scale: f64) -> f64 {
+    ((scale * 4.0).round() / 4.0).clamp(1.0, 3.0)
+}
+
 /// The saved `(mode, scale)` for this monitor.
-pub fn saved(output: &Output) -> (Option<Mode>, Option<i32>) {
+pub fn saved(output: &Output) -> (Option<Mode>, Option<f64>) {
     let all = load();
     let entry = &all[key(output)];
     let n = |name: &str| entry[name].as_i64().map(|v| v as i32);
@@ -39,7 +44,7 @@ pub fn saved(output: &Output) -> (Option<Mode>, Option<i32>) {
         (Some(w), Some(h), Some(r)) => Some((w, h, r)),
         _ => None,
     };
-    (mode, n("scale"))
+    (mode, entry["scale"].as_f64().map(valid_scale))
 }
 
 /// Updates some fields of this monitor's saved settings.
@@ -61,7 +66,7 @@ fn update(output: &Output, fields: Value) {
     }
 }
 
-fn save(output: &Output, mode: Mode, scale: i32) {
+fn save(output: &Output, mode: Mode, scale: f64) {
     update(output, json!({ "width": mode.0, "height": mode.1, "refresh": mode.2, "scale": scale }));
 }
 
@@ -91,7 +96,7 @@ impl State {
                     "id": output.name(),
                     "name": format!("{} {}", p.make, p.model),
                     "current": current,
-                    "scale": output.current_scale().integer_scale(),
+                    "scale": output.current_scale().fractional_scale(),
                     "modes": modes,
                 })
             })
@@ -99,7 +104,7 @@ impl State {
         Value::Array(screens)
     }
 
-    pub fn set_screen(&mut self, id: &str, mode: Mode, scale: i32) -> Result<(), String> {
+    pub fn set_screen(&mut self, id: &str, mode: Mode, scale: f64) -> Result<(), String> {
         let output = self
             .space
             .outputs()
@@ -110,7 +115,8 @@ impl State {
         if current != Some(mode) {
             self.change_mode(&output, mode)?;
         }
-        output.change_current_state(None, None, Some(Scale::Integer(scale.clamp(1, 3))), None);
+        let scale = valid_scale(scale);
+        output.change_current_state(None, None, Some(Scale::Fractional(scale)), None);
         save(&output, mode, scale);
         self.arrange_outputs();
         Ok(())

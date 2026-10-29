@@ -69,7 +69,8 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
         Some("set-screen") => {
             let n = |name: &str| request[name].as_i64().unwrap_or(0) as i32;
             let mode = (n("width"), n("height"), n("refresh"));
-            match state.set_screen(request["id"].as_str().unwrap_or(""), mode, n("scale").max(1)) {
+            let scale = request["scale"].as_f64().unwrap_or(1.0);
+            match state.set_screen(request["id"].as_str().unwrap_or(""), mode, scale) {
                 Ok(()) => json!({ "ok": true, "result": state.screens_list() }),
                 Err(e) => json!({ "ok": false, "error": e }),
             }

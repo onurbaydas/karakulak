@@ -457,7 +457,7 @@ impl State {
         let wl_mode = WlMode::from(drm_mode);
         let global = output.create_global::<State>(&self.display_handle);
         output.set_preferred(WlMode::from(preferred));
-        let scale = saved_scale.map(|s| smithay::output::Scale::Integer(s.clamp(1, 3)));
+        let scale = saved_scale.map(smithay::output::Scale::Fractional);
         output.change_current_state(Some(wl_mode), None, scale, None);
         output.user_data().insert_if_missing(|| OutputId { node, crtc });
 
@@ -523,8 +523,8 @@ impl State {
         outputs.sort_by_key(|o| (!o.name().starts_with("eDP"), o.name()));
         let mut x = 0;
         for output in outputs {
-            let scale = output.current_scale().integer_scale();
-            let width = output.current_mode().map_or(0, |m| m.size.to_logical(scale).w);
+            let scale = output.current_scale().fractional_scale();
+            let width = output.current_mode().map_or(0, |m| m.size.to_f64().to_logical(scale).w.round() as i32);
             output.change_current_state(None, None, None, Some((x, 0).into()));
             self.space.map_output(&output, (x, 0));
             x += width;

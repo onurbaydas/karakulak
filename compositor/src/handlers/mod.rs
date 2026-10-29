@@ -73,4 +73,26 @@ impl WaylandDndGrabHandler for State {
 
 impl OutputHandler for State {}
 
+impl smithay::wayland::fractional_scale::FractionalScaleHandler for State {
+    /// A new surface learns the scale of the screen its window is on.
+    fn new_fractional_scale(&mut self, surface: WlSurface) {
+        let mut root = surface.clone();
+        while let Some(parent) = smithay::wayland::compositor::get_parent(&root) {
+            root = parent;
+        }
+        let output = self
+            .space
+            .elements()
+            .find(|w| w.toplevel().is_some_and(|t| *t.wl_surface() == root))
+            .and_then(|w| self.space.outputs_for_element(w).into_iter().next())
+            .or_else(|| self.primary_output());
+        if let Some(output) = output {
+            let scale = output.current_scale().fractional_scale();
+            smithay::wayland::compositor::with_states(&surface, |states| {
+                smithay::wayland::fractional_scale::with_fractional_scale(states, |fs| fs.set_preferred_scale(scale));
+            });
+        }
+    }
+}
+
 smithay::delegate_dispatch2!(State);

@@ -113,7 +113,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Wi-Fi'de ağ başına farklı MAC adresi, bilgisayar adı ağa gönderilmez
 - [x] WireGuard VPN: Ayarlar'dan dosya yükle, panelden aç/kapa
 - [x] Ses cihazı seçimi, mikrofon seviyesi
-- [ ] Kesirli ölçek (%125, %150)
+- [x] Kesirli ölçek (%125, %150, %175...), keskin çizim (fractional-scale, viewporter)
 - [ ] İngilizce arayüz (sistem diline göre)
 - [ ] Ekran büyüteci (Super+artı/eksi)
 - [ ] Bluetooth'ta kod isteyen cihazlar

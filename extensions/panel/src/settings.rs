@@ -14,7 +14,7 @@ struct Screen {
     id: String,
     name: String,
     current: Option<(i32, i32, i32)>,
-    scale: i32,
+    scale: f64,
     modes: Vec<(i32, i32, i32)>,
 }
 
@@ -25,7 +25,7 @@ fn mode_text((w, h, mhz): (i32, i32, i32)) -> String {
 #[component]
 fn ScreenSettings(screen: Screen, screens: RwSignal<Vec<Screen>>, on_error: WriteSignal<String>) -> impl IntoView {
     let id = screen.id.clone();
-    let apply = move |mode: (i32, i32, i32), scale: i32| {
+    let apply = move |mode: (i32, i32, i32), scale: f64| {
         let args = vec![
             ("id", id.clone().into()),
             ("width", mode.0.into()),
@@ -37,6 +37,7 @@ fn ScreenSettings(screen: Screen, screens: RwSignal<Vec<Screen>>, on_error: Writ
     };
     let current = screen.current.unwrap_or_default();
     let scale = screen.scale;
+    let scales = [1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
     let modes = screen.modes.clone();
     let apply_mode = apply.clone();
 
@@ -63,12 +64,13 @@ fn ScreenSettings(screen: Screen, screens: RwSignal<Vec<Screen>>, on_error: Writ
             <label>
                 "Ölçek"
                 <select on:change=move |ev| {
-                    if let Ok(scale) = event_target_value(&ev).parse::<i32>() {
+                    if let Ok(scale) = event_target_value(&ev).parse::<f64>() {
                         apply(current, scale);
                     }
                 }>
-                    <option value="1" selected=scale == 1>"%100"</option>
-                    <option value="2" selected=scale == 2>"%200 (yüksek çözünürlüklü ekranlar)"</option>
+                    {scales.map(|s| {
+                        view! { <option value=s.to_string() selected=(s - scale).abs() < 0.01>{format!("%{}", (s * 100.0) as u32)}</option> }
+                    })}
                 </select>
             </label>
         </section>

@@ -56,6 +56,10 @@ pub struct State {
     /// Screens still to be saved for a Print Screen.
     pub screenshots_pending: Vec<String>,
     pub idle_inhibit_state: smithay::wayland::idle_inhibit::IdleInhibitManagerState,
+    /// Fractional scales (125%, 150%...) drawn sharply: clients render at the
+    /// exact size and hand it over through a viewport.
+    pub fractional_scale_state: smithay::wayland::fractional_scale::FractionalScaleManagerState,
+    pub viewporter_state: smithay::wayland::viewporter::ViewporterState,
 }
 
 impl State {
@@ -82,6 +86,8 @@ impl State {
         seat.add_pointer();
 
         let idle_inhibit_state = smithay::wayland::idle_inhibit::IdleInhibitManagerState::new::<Self>(&dh);
+        let fractional_scale_state = smithay::wayland::fractional_scale::FractionalScaleManagerState::new::<Self>(&dh);
+        let viewporter_state = smithay::wayland::viewporter::ViewporterState::new::<Self>(&dh);
         let socket_name = Self::init_wayland_listener(display, event_loop);
 
         Self {
@@ -109,6 +115,8 @@ impl State {
             power: Default::default(),
             screenshots_pending: Vec::new(),
             idle_inhibit_state,
+            fractional_scale_state,
+            viewporter_state,
         }
     }
 

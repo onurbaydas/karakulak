@@ -115,6 +115,10 @@ impl State {
             toplevel.send_pending_configure();
         }
         self.space.map_element(window.clone(), rect.loc, true);
+        let scale = output.current_scale().fractional_scale();
+        window.with_surfaces(|_, states| {
+            smithay::wayland::fractional_scale::with_fractional_scale(states, |fs| fs.set_preferred_scale(scale));
+        });
 
         let keyboard = self.seat.get_keyboard().unwrap();
         keyboard.set_focus(self, Some(toplevel.wl_surface().clone()), SERIAL_COUNTER.next_serial());
