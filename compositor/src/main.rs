@@ -8,6 +8,7 @@ mod cursor;
 mod handlers;
 mod input;
 mod ipc;
+mod layout;
 mod lock;
 mod pam;
 mod screens;

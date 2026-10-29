@@ -65,6 +65,19 @@ impl XdgShellHandler for State {
         surface.send_configure();
     }
 
+    fn move_request(&mut self, surface: ToplevelSurface, _seat: wl_seat::WlSeat, serial: Serial) {
+        let window = self
+            .space
+            .elements()
+            .find(|w| w.toplevel() == Some(&surface))
+            .cloned();
+        if let Some(window) = window
+            && !crate::state::is_floating(&window)
+        {
+            self.start_drag(window, serial);
+        }
+    }
+
     fn maximize_request(&mut self, surface: ToplevelSurface) {
         surface.send_configure();
     }

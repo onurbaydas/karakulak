@@ -8,7 +8,6 @@ use smithay::{
     input::{Seat, SeatState, pointer::CursorImageStatus},
     reexports::{
         calloop::{EventLoop, Interest, LoopHandle, LoopSignal, Mode, PostAction, generic::Generic},
-        wayland_protocols::xdg::shell::server::xdg_toplevel,
         wayland_server::{
             Display, DisplayHandle,
             backend::{ClientData, ClientId, DisconnectReason},
@@ -141,75 +140,6 @@ impl State {
         })
     }
 
-    /// Makes `window` fill a screen and gives it the keyboard. A new window
-    /// goes to a screen that has none yet, so each screen gets its own
-    /// Firefox window. Windows are maximized, which keeps Firefox's tabs and
-    /// toolbar; real fullscreen is only for when a page asks (videos).
-    pub fn place(&mut self, window: Window) {
-        if let Some(output) = self.output_for(&window) {
-            self.place_on(window, output);
-        }
-    }
-
-    /// The leftmost screen: the built-in one on laptops.
-    pub fn primary_output(&self) -> Option<Output> {
-        self.space
-            .outputs()
-            .min_by_key(|o| self.space.output_geometry(o).map_or(i32::MAX, |g| g.loc.x))
-            .cloned()
-    }
-
-    pub fn place_on_primary(&mut self, window: Window) {
-        if let Some(output) = self.primary_output() {
-            self.place_on(window, output);
-        }
-    }
-
-    fn place_on(&mut self, window: Window, output: Output) {
-        window
-            .user_data()
-            .insert_if_missing(|| std::cell::RefCell::new(String::new()));
-        *window.user_data().get::<std::cell::RefCell<String>>().unwrap().borrow_mut() = output.name();
-        let geometry = self.space.output_geometry(&output).unwrap();
-        let toplevel = window.toplevel().unwrap();
-        toplevel.with_pending_state(|state| {
-            state.states.set(xdg_toplevel::State::Maximized);
-            state.states.set(xdg_toplevel::State::Activated);
-            state.size = Some(geometry.size);
-        });
-        if toplevel.is_initial_configure_sent() {
-            toplevel.send_pending_configure();
-        }
-        self.space.map_element(window.clone(), geometry.loc, true);
-
-        let keyboard = self.seat.get_keyboard().unwrap();
-        keyboard.set_focus(self, Some(toplevel.wl_surface().clone()), SERIAL_COUNTER.next_serial());
-    }
-
-    /// The screen `window` was on if it still exists, else the first screen
-    /// without a window, else the first screen.
-    fn output_for(&self, window: &Window) -> Option<Output> {
-        let assigned = window
-            .user_data()
-            .get::<std::cell::RefCell<String>>()
-            .map(|name| name.borrow().clone());
-        let outputs: Vec<&Output> = self.space.outputs().collect();
-        if let Some(output) = outputs.iter().find(|o| Some(o.name()) == assigned) {
-            return Some((*output).clone());
-        }
-        let used: Vec<String> = self
-            .space
-            .elements()
-            .filter(|w| *w != window && !is_floating(w))
-            .filter_map(|w| w.user_data().get::<std::cell::RefCell<String>>().map(|n| n.borrow().clone()))
-            .collect();
-        outputs
-            .iter()
-            .find(|o| !used.contains(&o.name()))
-            .or(outputs.first())
-            .map(|o| (*o).clone())
-    }
-
     /// `[{"id", "name", "level"}]` for every screen.
     pub fn brightness_list(&self) -> Value {
         let screens: Vec<Value> = self
@@ -337,18 +267,6 @@ impl State {
         let loc = screen.loc + offset;
         self.space.map_element(window.clone(), loc, true);
         floating.0.set(true);
-    }
-
-    /// Refits every window after the screen changed size.
-    pub fn refit_windows(&mut self) {
-        let windows: Vec<Window> = self.space.elements().filter(|w| !is_floating(w)).cloned().collect();
-        for window in windows {
-            if crate::lock::app_id(&window).as_deref() == Some(crate::lock::LOCK_APP_ID) {
-                self.place_on_primary(window);
-            } else {
-                self.place(window);
-            }
-        }
     }
 }
 

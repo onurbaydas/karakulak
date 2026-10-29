@@ -13,13 +13,16 @@ use smithay::{
 
 /// Keys the compositor handles itself instead of passing to Firefox.
 enum Action {
+    Tile(Slot),
+    MoveToScreen(i32),
+    NextWindow,
     /// Ctrl+Alt+F1..F12
     SwitchVt(i32),
     /// Ctrl+Alt+Backspace: leave, e.g. if something hangs during development.
     Quit,
 }
 
-use crate::state::State;
+use crate::{layout::Slot, state::State};
 
 impl State {
     pub fn process_input_event<I: InputBackend>(&mut self, event: InputEvent<I>) {
@@ -47,12 +50,31 @@ impl State {
                         if modifiers.ctrl && modifiers.alt && sym == keysyms::KEY_BackSpace {
                             return FilterResult::Intercept(Action::Quit);
                         }
+                        if modifiers.alt && !modifiers.ctrl && sym == keysyms::KEY_Tab {
+                            return FilterResult::Intercept(Action::NextWindow);
+                        }
+                        if modifiers.logo {
+                            let action = match (modifiers.shift, sym) {
+                                (false, keysyms::KEY_Left) => Some(Action::Tile(Slot::Left)),
+                                (false, keysyms::KEY_Right) => Some(Action::Tile(Slot::Right)),
+                                (false, keysyms::KEY_Up) => Some(Action::Tile(Slot::Full)),
+                                (true, keysyms::KEY_Left) => Some(Action::MoveToScreen(-1)),
+                                (true, keysyms::KEY_Right) => Some(Action::MoveToScreen(1)),
+                                _ => None,
+                            };
+                            if let Some(action) = action {
+                                return FilterResult::Intercept(action);
+                            }
+                        }
                         FilterResult::Forward
                     },
                 );
                 match action {
                     Some(Action::SwitchVt(vt)) => self.change_vt(vt),
                     Some(Action::Quit) => self.loop_signal.stop(),
+                    Some(Action::Tile(slot)) => self.tile_focused(slot),
+                    Some(Action::MoveToScreen(step)) => self.move_focused_to_screen(step),
+                    Some(Action::NextWindow) => self.cycle_windows(),
                     None => {}
                 }
             }
