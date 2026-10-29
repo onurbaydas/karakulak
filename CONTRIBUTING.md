@@ -39,11 +39,11 @@ rustup target add wasm32-unknown-unknown
 cargo install wasm-pack
 ```
 
-Build, then load `extensions/<name>/ext/manifest.json` in Firefox from
-`about:debugging` → This Firefox → Load Temporary Add-on:
+Try an extension in Firefox (builds everything, opens a separate dev profile):
 
 ```sh
-extensions/build.sh panel
+./dev.sh          # panel
+./dev.sh welcome
 ```
 
 Release Firefox only installs signed extensions, so the image ships signed
