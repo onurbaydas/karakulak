@@ -55,9 +55,10 @@ Hepsi önce kendi bilgisayarımızdaki Firefox'ta denenir, sonra ISO'ya girer.
 
 ## v0.3 — Dosyalar
 
-- [ ] Dosya yöneticisi eklentisi: klasörleri gez, dosya aç, kopyala, taşı, sil
-- [ ] USB bellek takınca görünsün
-- [ ] Firefox'un indirdiği dosyalar burada görünsün
+- [x] Dosya yöneticisi (paneldeki "Dosyalar"): klasörleri gez, dosyayı Firefox'ta aç,
+  yeni klasör, yeniden adlandır, kopyala, taşı, çöpe at
+- [x] USB bellek takınca görünsün, tıklayınca bağlansın, "Çıkar" ile güvenle çıksın
+- [x] İndirilenler klasörü solda hazır
 - [ ] Terminal eklentisi: bir sekmede açılan terminal (xterm.js, komutları `karakulakd` çalıştırır)
 - [ ] Monitör ayarları: çözünürlük, ikinci ekran
 

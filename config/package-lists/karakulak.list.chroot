@@ -20,6 +20,9 @@ fonts-noto-color-emoji
 pipewire-audio
 bluez
 
+# Files: USB sticks, trash
+udisks2
+
 # Network
 network-manager
 ca-certificates

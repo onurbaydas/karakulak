@@ -14,6 +14,18 @@ struct Place {
 }
 
 #[derive(Clone, Deserialize)]
+struct Disk {
+    id: String,
+    name: String,
+    mounted: Option<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct Mounted {
+    path: String,
+}
+
+#[derive(Clone, Deserialize)]
 struct Entry {
     name: String,
     path: String,
@@ -82,6 +94,12 @@ pub fn Files() -> impl IntoView {
     let selected = RwSignal::new(Vec::<String>::new());
     let clipboard = RwSignal::new(None::<Clipboard>);
     let hidden = RwSignal::new(false);
+    let disks = RwSignal::new(Vec::<Disk>::new());
+
+    // Plugged-in sticks show up by themselves.
+    let refresh_disks = move || run::<Vec<Disk>>("usb-list", vec![], set_error, move |d| disks.set(d.unwrap_or_default()));
+    refresh_disks();
+    set_interval(refresh_disks, std::time::Duration::from_secs(3));
 
     let load = move |path: String| {
         set_error.set(String::new());
@@ -236,6 +254,38 @@ pub fn Files() -> impl IntoView {
                         };
                         view! {
                             <button class:active=active on:click=move |_| go(path.clone())>{place.name}</button>
+                        }
+                    }
+                </For>
+                <Show when=move || !disks.get().is_empty()>
+                    <h2>"USB"</h2>
+                </Show>
+                <For each=move || disks.get() key=|d| (d.id.clone(), d.mounted.clone()) let:disk>
+                    {
+                        let id = disk.id.clone();
+                        let open_disk = {
+                            let id = id.clone();
+                            move |_| {
+                                run::<Mounted>("usb-mount", vec![("id", id.clone().into())], set_error, move |m| {
+                                    if let Some(m) = m {
+                                        go(m.path);
+                                    }
+                                    refresh_disks();
+                                })
+                            }
+                        };
+                        let eject = move |_| {
+                            run::<Vec<Disk>>("usb-eject", vec![("id", id.clone().into())], set_error, move |d| {
+                                disks.set(d.unwrap_or_default());
+                            })
+                        };
+                        view! {
+                            <div class="disk">
+                                <button on:click=open_disk>{disk.name}</button>
+                                <Show when=move || disk.mounted.is_some()>
+                                    <button title="Çıkar" on:click=eject.clone()>"⏏"</button>
+                                </Show>
+                            </div>
                         }
                     }
                 </For>

@@ -6,6 +6,7 @@ mod audio;
 mod bluetooth;
 mod brightness;
 mod files;
+mod usb;
 mod wifi;
 
 use serde_json::{json, Value};
@@ -59,6 +60,9 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "files-copy" => files::transfer(&strings(&msg["paths"]), arg("to"), true),
         "files-move" => files::transfer(&strings(&msg["paths"]), arg("to"), false),
         "files-trash" => files::to_trash(&strings(&msg["paths"])),
+        "usb-list" => usb::list(),
+        "usb-mount" => usb::mount(arg("id")),
+        "usb-eject" => usb::eject(arg("id")),
         "bluetooth-pair" => bluetooth::pair(arg("path")),
         "lock" => brightness::compositor(json!({ "cmd": "lock" })).unwrap_or(Err("not in Karakulak's compositor".into())),
         "unlock" => brightness::compositor(json!({ "cmd": "unlock", "password": arg("password") }))
