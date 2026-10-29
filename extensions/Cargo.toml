@@ -1,5 +1,5 @@
 [workspace]
-members = ["browser", "welcome", "panel"]
+members = ["browser", "welcome", "panel", "lock"]
 resolver = "2"
 
 [workspace.package]

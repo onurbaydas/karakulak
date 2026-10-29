@@ -8,6 +8,8 @@ mod cursor;
 mod handlers;
 mod input;
 mod ipc;
+mod lock;
+mod pam;
 mod state;
 mod udev;
 mod winit;
@@ -38,6 +40,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     unsafe {
         std::env::set_var("WAYLAND_DISPLAY", &state.socket_name);
         std::env::set_var("KARAKULAK_SOCKET", &control);
+    }
+    if let Some(lock_events) = lock::init(&mut state) {
+        event_loop.handle().insert_source(lock_events, |event, _, state| {
+            if let smithay::reexports::calloop::channel::Event::Msg(event) = event {
+                state.handle_lock_event(event);
+            }
+        })?;
     }
     spawn_session();
 

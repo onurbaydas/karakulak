@@ -49,6 +49,9 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "bluetooth-power" => bluetooth::set_powered(msg["on"].as_bool().unwrap_or(false)),
         "bluetooth-connect" => bluetooth::set_connected(arg("path"), true),
         "bluetooth-disconnect" => bluetooth::set_connected(arg("path"), false),
+        "lock" => brightness::compositor(json!({ "cmd": "lock" })).unwrap_or(Err("not in Karakulak's compositor".into())),
+        "unlock" => brightness::compositor(json!({ "cmd": "unlock", "password": arg("password") }))
+            .unwrap_or(Err("not in Karakulak's compositor".into())),
         cmd => Err(format!("unknown command: {cmd}")),
     }
 }

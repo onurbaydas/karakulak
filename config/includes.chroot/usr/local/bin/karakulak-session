@@ -3,11 +3,20 @@
 set -e
 
 PROFILE="$HOME/.karakulak/profile"
+LOCK_PROFILE="$HOME/.karakulak/lock-profile"
+# Fixed id for the lock extension, so the lock page has a known address.
+LOCK_UUID=25132d8a-5beb-433b-85c5-3a44558bec2c
 
 if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
 	mkdir -p "$PROFILE/chrome"
 	cp /usr/share/karakulak/firefox/userChrome.css "$PROFILE/chrome/userChrome.css"
 fi
+
+# The lock screen: an empty kiosk profile showing only the lock page.
+mkdir -p "$LOCK_PROFILE"
+printf 'user_pref("extensions.webextensions.uuids", "{\\"lock@karakulak\\":\\"%s\\"}");\n' "$LOCK_UUID" \
+	> "$LOCK_PROFILE/user.js"
+export KARAKULAK_LOCK_COMMAND="firefox --kiosk --no-remote --name karakulak-lock --profile $LOCK_PROFILE moz-extension://$LOCK_UUID/lock.html"
 
 export XCURSOR_THEME=DMZ-White
 # Extra screens get a window from the running Firefox (same profile).

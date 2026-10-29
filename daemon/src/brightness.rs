@@ -34,7 +34,7 @@ fn backlight_level(dir: &Path) -> Result<f64, String> {
 }
 
 /// Asks the compositor, if we run inside it.
-fn compositor(request: Value) -> Option<Result<Value, String>> {
+pub fn compositor(request: Value) -> Option<Result<Value, String>> {
     let path = std::env::var_os("KARAKULAK_SOCKET")?;
     let result = (|| {
         let mut stream = UnixStream::connect(path).map_err(|e| e.to_string())?;

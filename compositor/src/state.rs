@@ -39,6 +39,10 @@ pub struct State {
     pub cursor_status: CursorImageStatus,
     /// New-window requests sent to Firefox that have not shown up yet.
     pub windows_requested: usize,
+    /// Windows that have not committed yet; we place them once we know
+    /// their app id (lock window or not).
+    pub pending: Vec<Window>,
+    pub lock: crate::lock::Lock,
 
     pub compositor_state: CompositorState,
     pub xdg_shell_state: XdgShellState,
@@ -84,6 +88,8 @@ impl State {
             udev: None,
             cursor_status: CursorImageStatus::default_named(),
             windows_requested: 0,
+            pending: Vec::new(),
+            lock: Default::default(),
             socket_name,
             compositor_state,
             xdg_shell_state,
@@ -140,9 +146,26 @@ impl State {
     /// Firefox window. Windows are maximized, which keeps Firefox's tabs and
     /// toolbar; real fullscreen is only for when a page asks (videos).
     pub fn place(&mut self, window: Window) {
-        let Some(output) = self.output_for(&window) else {
-            return;
-        };
+        if let Some(output) = self.output_for(&window) {
+            self.place_on(window, output);
+        }
+    }
+
+    /// The leftmost screen: the built-in one on laptops.
+    pub fn primary_output(&self) -> Option<Output> {
+        self.space
+            .outputs()
+            .min_by_key(|o| self.space.output_geometry(o).map_or(i32::MAX, |g| g.loc.x))
+            .cloned()
+    }
+
+    pub fn place_on_primary(&mut self, window: Window) {
+        if let Some(output) = self.primary_output() {
+            self.place_on(window, output);
+        }
+    }
+
+    fn place_on(&mut self, window: Window, output: Output) {
         window
             .user_data()
             .insert_if_missing(|| std::cell::RefCell::new(String::new()));
@@ -236,7 +259,7 @@ impl State {
     pub fn fill_empty_screens(&mut self) {
         let windows = self.space.elements().count();
         let screens = self.space.outputs().count();
-        if windows == 0 || self.windows_requested > 0 || windows >= screens {
+        if self.lock.locked || windows == 0 || self.windows_requested > 0 || windows >= screens {
             return;
         }
         let command = std::env::var("KARAKULAK_NEW_WINDOW").unwrap_or_else(|_| "firefox --new-window".into());
@@ -253,11 +276,43 @@ impl State {
         }
     }
 
+    /// First commit of a new window: now its app id is known.
+    pub fn map_new_window(&mut self, surface: &WlSurface) {
+        let Some(index) = self
+            .pending
+            .iter()
+            .position(|w| w.toplevel().unwrap().wl_surface() == surface)
+        else {
+            return;
+        };
+        let window = self.pending.remove(index);
+        let toplevel = window.toplevel().unwrap().clone();
+
+        if crate::lock::app_id(&window).as_deref() == Some(crate::lock::LOCK_APP_ID) {
+            self.lock_window_created(window);
+        } else {
+            self.windows_requested = self.windows_requested.saturating_sub(1);
+            if let Some(window) = self.hide_while_locked(window.clone()) {
+                self.place(window);
+                self.fill_empty_screens();
+            } else if let Some(geometry) = self.primary_output().and_then(|o| self.space.output_geometry(&o)) {
+                toplevel.with_pending_state(|state| state.size = Some(geometry.size));
+            }
+        }
+        if !toplevel.is_initial_configure_sent() {
+            toplevel.send_configure();
+        }
+    }
+
     /// Refits every window after the screen changed size.
     pub fn refit_windows(&mut self) {
         let windows: Vec<Window> = self.space.elements().cloned().collect();
         for window in windows {
-            self.place(window);
+            if crate::lock::app_id(&window).as_deref() == Some(crate::lock::LOCK_APP_ID) {
+                self.place_on_primary(window);
+            } else {
+                self.place(window);
+            }
         }
     }
 }

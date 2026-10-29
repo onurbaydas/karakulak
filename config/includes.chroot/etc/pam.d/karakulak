@@ -1,0 +1,3 @@
+# Karakulak lock screen: check the user's password.
+@include common-auth
+@include common-account

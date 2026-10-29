@@ -400,6 +400,7 @@ fn Panel() -> impl IntoView {
         <Wifi on_error=set_error />
         <BluetoothSection on_error=set_error />
         <div class="power">
+            <button on:click={move |_| run::<()>("lock", vec![], set_error, |_| {})}>"Kilitle"</button>
             <PowerButton label="Uyku" cmd="suspend" on_error=set_error />
             <PowerButton label="Yeniden başlat" cmd="reboot" on_error=set_error />
             <PowerButton label="Kapat" cmd="poweroff" on_error=set_error />

@@ -3,5 +3,8 @@
   "description": "Karakulak system helper",
   "path": "/usr/bin/karakulakd",
   "type": "stdio",
-  "allowed_extensions": ["panel@karakulak"]
+  "allowed_extensions": [
+    "panel@karakulak",
+    "lock@karakulak"
+  ]
 }

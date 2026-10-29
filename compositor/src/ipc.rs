@@ -3,6 +3,8 @@
 //!
 //!   {"cmd": "brightness"}                          -> [{"id", "name", "level"}]
 //!   {"cmd": "set-brightness", "id": .., "level": ..} -> same list
+//!   {"cmd": "lock"}
+//!   {"cmd": "unlock", "password": ..}              -> error if wrong
 
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
@@ -43,6 +45,16 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
     let request: Value = serde_json::from_str(&line).unwrap_or(Value::Null);
 
     let reply = match request["cmd"].as_str() {
+        Some("lock") => {
+            state.lock();
+            json!({ "ok": true, "result": null })
+        }
+        Some("unlock") => {
+            // Answered from the PAM worker once the password is checked.
+            let password = request["password"].as_str().unwrap_or("").to_string();
+            crate::lock::check_password(state, password, stream);
+            return Ok(());
+        }
         Some("brightness") => json!({ "ok": true, "result": state.brightness_list() }),
         Some("set-brightness") => {
             let id = request["id"].as_str().unwrap_or("");

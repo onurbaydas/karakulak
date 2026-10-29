@@ -70,7 +70,7 @@ daemon/dev-install.sh
 | `config/archives/` | Extra APT repositories (Mozilla) |
 | `config/includes.chroot/` | Files copied into the image as-is |
 | `config/includes.installer/` | Debian installer preseed |
-| `extensions/` | Karakulak's own Firefox extensions (Rust + Leptos) |
+| `extensions/` | Karakulak's own Firefox extensions (Rust + Leptos): welcome, panel, lock |
 | `compositor/` | Karakulak's Wayland compositor (Rust, Smithay) |
 | `daemon/` | `karakulakd`, the Rust helper extensions talk to via native messaging |
 | `docs/adr/` | Architecture decision records |

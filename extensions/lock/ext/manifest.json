@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Karakulak Lock",
+  "version": "0.1.0",
+  "description": "Lock screen for Karakulak.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "lock@karakulak",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "permissions": ["nativeMessaging"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}

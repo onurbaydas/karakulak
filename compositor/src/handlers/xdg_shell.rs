@@ -26,9 +26,19 @@ impl XdgShellHandler for State {
     }
 
     fn new_toplevel(&mut self, surface: ToplevelSurface) {
-        self.windows_requested = self.windows_requested.saturating_sub(1);
-        self.place(Window::new_wayland_window(surface));
-        self.fill_empty_screens();
+        self.pending.push(Window::new_wayland_window(surface));
+    }
+
+    fn toplevel_destroyed(&mut self, surface: ToplevelSurface) {
+        self.pending.retain(|w| w.toplevel().unwrap() != &surface);
+        let was_lock = self
+            .lock
+            .window
+            .as_ref()
+            .is_some_and(|w| w.toplevel().unwrap() == &surface);
+        if was_lock {
+            self.lock_window_gone();
+        }
     }
 
     fn new_popup(&mut self, surface: PopupSurface, _positioner: PositionerState) {

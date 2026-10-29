@@ -42,7 +42,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends libseat-dev libinput-dev libgbm-dev \
-            libdisplay-info-dev libxkbcommon-dev libwayland-dev libudev-dev libegl-dev pkg-config
+            libdisplay-info-dev libxkbcommon-dev libwayland-dev libudev-dev libegl-dev libpam0g-dev pkg-config
       - name: Build
         working-directory: compositor
         run: |

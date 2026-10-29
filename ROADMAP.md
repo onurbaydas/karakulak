@@ -33,12 +33,13 @@ eklentiler ona komut gönderir.
   - [x] Bluetooth: aç/kapat, eşleşmiş cihazlara bağlan
   - [ ] Bluetooth: yeni cihaz eşleştirme
   - [x] Ekran parlaklığı: laptop ekranı ve DDC/CI destekli harici monitörler
-- [ ] Kilit ekranı: açılışta ve uykudan dönünce şifre sorulur. Görünen kısım
-  bir Firefox sayfası, ama kilidi Firefox'un altındaki katman tutar: kilitliyken
-  Firefox gizlenir, kısayollar çalışmaz. (cage bunu desteklemiyor, değişebilir.)
+- [x] Kilit ekranı: açılışta, uykudan önce ve panelden "Kilitle" ile kilitlenir.
+  Kilitliyken ekran yöneticisi bütün pencereleri gizler, sadece kilit sayfasını
+  (boş profilli kiosk Firefox) gösterir. Şifreyi ekran yöneticisi PAM ile
+  kontrol eder.
 - [x] Kapağı kapatınca uyku (systemd-logind bunu varsayılan olarak yapıyor)
 - [ ] Kendi Rust ekran yöneticimiz (Smithay), cage'in yerine. Bunlar için şart:
-  - [ ] Kilit ekranı (yukarıda)
+  - [x] Kilit ekranı (yukarıda)
   - [x] Temel: Firefox'u ekranı kaplayacak şekilde açar (şimdilik başka bir
     masaüstünün içinde pencere olarak, `./dev.sh session`)
   - [x] Parlaklık: ekran yöneticisi görüntüyü karartır, her ekranda çalışır

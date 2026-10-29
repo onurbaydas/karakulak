@@ -676,6 +676,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "karakulak-lock"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "karakulak-browser",
+ "leptos",
+ "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "karakulak-panel"
 version = "0.1.0"
 dependencies = [
