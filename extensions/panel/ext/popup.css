@@ -147,3 +147,9 @@ summary {
   border: 1px solid var(--muted);
   border-radius: 0.4rem;
 }
+
+.hint {
+  margin: 0.25rem 0 0;
+  color: var(--danger);
+  font-size: 0.9em;
+}

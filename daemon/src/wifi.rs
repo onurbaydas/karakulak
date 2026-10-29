@@ -105,18 +105,34 @@ pub fn list() -> Result<Value, String> {
     Ok(Value::Array(networks))
 }
 
-/// Connects to `ssid`. A saved network reuses its saved settings; otherwise a
-/// new one is created with `password` (empty for open networks).
+/// Connects to `ssid`. Without a password a saved network reuses its saved
+/// settings. With a password the saved settings are replaced, so a wrong or
+/// missing password can be fixed by entering it again.
 pub fn connect(ssid: &str, password: &str) -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
     let device = wifi_device(&bus)?;
     let root = OwnedObjectPath::try_from("/").map_err(err)?;
+    let saved = saved(&bus)?.remove(ssid);
 
-    if let Some(saved) = saved(&bus)?.remove(ssid) {
-        let _: OwnedObjectPath = proxy(&bus, NM_PATH, NM)?
-            .call("ActivateConnection", &(&saved, &device, &root))
+    if password.is_empty() {
+        if let Some(saved) = saved {
+            let _: OwnedObjectPath = proxy(&bus, NM_PATH, NM)?
+                .call("ActivateConnection", &(&saved, &device, &root))
+                .map_err(err)?;
+            return Ok(Value::Null);
+        }
+        let secure = list()?
+            .as_array()
+            .into_iter()
+            .flatten()
+            .any(|n| n["ssid"] == ssid && n["secure"] == true);
+        if secure {
+            return Err("password required".into());
+        }
+    } else if let Some(saved) = saved {
+        let _: () = proxy(&bus, saved.as_str(), CONNECTION)?
+            .call("Delete", &())
             .map_err(err)?;
-        return Ok(Value::Null);
     }
 
     let mut settings: HashMap<&str, HashMap<&str, Variant>> = HashMap::new();

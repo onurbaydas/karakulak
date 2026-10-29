@@ -206,22 +206,43 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
     let selected = RwSignal::new(None::<String>);
     let password = RwSignal::new(String::new());
     let connecting = RwSignal::new(None::<String>);
+    let failed = RwSignal::new(false);
     let refresh = move || run::<Vec<Network>>("wifi-list", vec![], on_error, move |n| networks.set(n.unwrap_or_default()));
     refresh();
+
+    // Didn't connect: ask for the password, which replaces the saved one.
+    let ask_password = move |ssid: String| {
+        connecting.set(None);
+        failed.set(true);
+        selected.set(Some(ssid));
+    };
 
     let connect = move |ssid: String| {
         let args = vec![("ssid", ssid.clone().into()), ("password", password.get().into())];
         password.set(String::new());
         selected.set(None);
-        connecting.set(Some(ssid));
-        run::<()>("wifi-connect", args, on_error, move |_| {
-            // NetworkManager connects in the background; give it a moment.
+        failed.set(false);
+        connecting.set(Some(ssid.clone()));
+        spawn_local(async move {
+            if send::<()>("wifi-connect", &args).await.is_err() {
+                ask_password(ssid);
+                return;
+            }
+            // NetworkManager connects in the background; check after a moment.
             set_timeout(
                 move || {
-                    connecting.set(None);
-                    refresh();
+                    run::<Vec<Network>>("wifi-list", vec![], on_error, move |n| {
+                        let n = n.unwrap_or_default();
+                        let connected = n.iter().any(|net| net.ssid == ssid && net.active);
+                        networks.set(n);
+                        if connected {
+                            connecting.set(None);
+                        } else {
+                            ask_password(ssid);
+                        }
+                    })
                 },
-                Duration::from_secs(4),
+                Duration::from_secs(6),
             );
         });
     };
@@ -270,6 +291,9 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
                                     <small>{status}</small>
                                 </button>
                                 <Show when=is_selected>
+                                    <Show when=move || failed.get()>
+                                        <p class="hint">"Bağlanamadı, şifreyi gir."</p>
+                                    </Show>
                                     <form on:submit={
                                         let ssid = ssid.clone();
                                         move |ev| {
@@ -277,7 +301,7 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
                                             connect(ssid.clone());
                                         }
                                     }>
-                                        <input type="password" placeholder="Şifre" bind:value=password />
+                                        <input type="password" placeholder="Şifre" required bind:value=password />
                                         <button type="submit">"Bağlan"</button>
                                     </form>
                                 </Show>
