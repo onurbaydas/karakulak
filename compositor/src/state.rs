@@ -73,7 +73,15 @@ impl State {
 
         let mut seat_state = SeatState::new();
         let mut seat: Seat<Self> = seat_state.new_wl_seat(&dh, "seat0");
-        seat.add_keyboard(Default::default(), 200, 25).unwrap();
+        let (layout, variant) = crate::keyboard::system_layout();
+        let xkb = smithay::input::keyboard::XkbConfig {
+            layout: &layout,
+            variant: &variant,
+            ..Default::default()
+        };
+        seat.add_keyboard(xkb, 200, 25)
+            .or_else(|_| seat.add_keyboard(Default::default(), 200, 25))
+            .unwrap();
         seat.add_pointer();
 
         let socket_name = Self::init_wayland_listener(display, event_loop);

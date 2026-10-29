@@ -7,6 +7,7 @@ mod bluetooth;
 mod brightness;
 mod files;
 mod terminal;
+mod system;
 mod usb;
 mod wifi;
 
@@ -64,6 +65,14 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "usb-list" => usb::list(),
         "usb-mount" => usb::mount(arg("id")),
         "usb-eject" => usb::eject(arg("id")),
+        "regional" => system::regional(),
+        "set-language" => system::set_language(arg("language")),
+        "set-keyboard" => system::set_keyboard(arg("layout"), arg("variant")),
+        "set-timezone" => system::set_timezone(arg("timezone")),
+        "updates" => system::updates(),
+        "update-now" => system::update_now(),
+        "firewall" => system::firewall(),
+        "set-firewall" => system::set_firewall(msg["on"].as_bool().unwrap_or(true)),
         "term-open" => terminal::open(num(msg, "cols"), num(msg, "rows")),
         "term-input" => terminal::input(num(msg, "term"), arg("data")),
         "term-resize" => terminal::resize(num(msg, "term"), num(msg, "cols"), num(msg, "rows")),

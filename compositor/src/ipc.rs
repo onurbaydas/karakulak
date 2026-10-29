@@ -47,6 +47,10 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
     let request: Value = serde_json::from_str(&line).unwrap_or(Value::Null);
 
     let reply = match request["cmd"].as_str() {
+        Some("reload-keyboard") => {
+            state.reload_keyboard();
+            json!({ "ok": true, "result": null })
+        }
         Some("screens") => json!({ "ok": true, "result": state.screens_list() }),
         Some("set-screen") => {
             let n = |name: &str| request[name].as_i64().unwrap_or(0) as i32;

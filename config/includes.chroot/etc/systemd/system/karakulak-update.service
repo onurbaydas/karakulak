@@ -1,0 +1,10 @@
+[Unit]
+Description=Karakulak: update the system now
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=DEBIAN_FRONTEND=noninteractive
+ExecStart=/usr/bin/apt-get update
+ExecStart=/usr/bin/apt-get -y -o Dpkg::Options::=--force-confold full-upgrade

@@ -27,6 +27,17 @@ bluez
 # Files: USB sticks, trash
 udisks2
 
+# System settings: languages, updates, firewall
+locales
+unattended-upgrades
+nftables
+firefox-l10n-tr
+
+# Printing (driverless printers work without extra drivers)
+cups
+cups-filters
+ipp-usb
+
 # Network
 network-manager
 ca-certificates

@@ -62,6 +62,23 @@ async fn chosen_level() -> Option<String> {
     get(&stored, "level").as_string()
 }
 
+/// Settings (panel extension) changes the level through background.js.
+#[wasm_bindgen]
+pub async fn set_level(name: String) -> Result<(), JsValue> {
+    let name: &'static str = match name.as_str() {
+        "standard" => "standard",
+        "strict" => "strict",
+        "paranoid" => "paranoid",
+        _ => return Err("unknown level".into()),
+    };
+    apply(name).await.map_err(|e| JsValue::from_str(&e))
+}
+
+#[wasm_bindgen]
+pub async fn get_level() -> JsValue {
+    chosen_level().await.map(JsValue::from).unwrap_or(JsValue::NULL)
+}
+
 /// Called by background.js on install and on every browser start.
 #[wasm_bindgen]
 pub async fn open_welcome_if_needed() -> Result<(), JsValue> {

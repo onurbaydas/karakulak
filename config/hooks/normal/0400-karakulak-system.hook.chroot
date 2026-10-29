@@ -1,0 +1,7 @@
+#!/bin/sh
+# Languages offered in Settings, and the firewall on at boot.
+set -e
+
+sed -i -e 's/^# *\(tr_TR.UTF-8 UTF-8\)/\1/' -e 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+locale-gen
+systemctl enable nftables.service

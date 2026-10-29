@@ -1,7 +1,11 @@
-//! Settings page (settings.html). For now: screens (resolution, scale).
+//! Settings page (settings.html): screens, region and language, privacy,
+//! updates, firewall, printers.
 
 use leptos::prelude::*;
 use serde::Deserialize;
+
+use karakulak_browser::{call, object};
+use leptos::task::spawn_local;
 
 use crate::run;
 
@@ -71,6 +75,195 @@ fn ScreenSettings(screen: Screen, screens: RwSignal<Vec<Screen>>, on_error: Writ
     }
 }
 
+#[derive(Clone, Deserialize)]
+struct Regional {
+    language: String,
+    layout: String,
+    variant: String,
+    timezone: String,
+    timezones: Vec<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct Updates {
+    pending: u32,
+    state: String,
+}
+
+#[derive(Clone, Deserialize)]
+struct Firewall {
+    on: bool,
+}
+
+const LANGUAGES: [(&str, &str); 2] = [("tr_TR.UTF-8", "Türkçe"), ("en_US.UTF-8", "English")];
+const KEYBOARDS: [(&str, &str, &str); 6] = [
+    ("tr", "", "Türkçe Q"),
+    ("tr", "f", "Türkçe F"),
+    ("us", "", "English (US)"),
+    ("gb", "", "English (UK)"),
+    ("de", "", "Deutsch"),
+    ("fr", "", "Français"),
+];
+const PRIVACY: [(&str, &str); 3] = [("standard", "Standart"), ("strict", "Sıkı"), ("paranoid", "Paranoyak")];
+
+#[component]
+fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let regional = RwSignal::new(None::<Regional>);
+    let update = move |r: Option<Regional>| regional.set(r);
+    run::<Regional>("regional", vec![], on_error, update);
+
+    move || {
+        regional.get().map(|r| {
+            let keyboard = KEYBOARDS.iter().position(|(l, v, _)| *l == r.layout && *v == r.variant);
+            view! {
+                <section class="card">
+                    <label>
+                        "Dil"
+                        <select on:change=move |ev| {
+                            let args = vec![("language", event_target_value(&ev).into())];
+                            run::<Regional>("set-language", args, on_error, update);
+                        }>
+                            {LANGUAGES.map(|(code, name)| view! { <option value=code selected=r.language == code>{name}</option> })}
+                        </select>
+                    </label>
+                    <p class="hint">"Dil değişikliği bir sonraki girişte uygulanır."</p>
+                    <label>
+                        "Klavye"
+                        <select on:change=move |ev| {
+                            if let Some((layout, variant, _)) = event_target_value(&ev).parse::<usize>().ok().and_then(|i| KEYBOARDS.get(i)) {
+                                let args = vec![("layout", (*layout).into()), ("variant", (*variant).into())];
+                                run::<Regional>("set-keyboard", args, on_error, update);
+                            }
+                        }>
+                            {KEYBOARDS
+                                .iter()
+                                .enumerate()
+                                .map(|(i, (_, _, name))| view! { <option value=i.to_string() selected=keyboard == Some(i)>{*name}</option> })
+                                .collect_view()}
+                        </select>
+                    </label>
+                    <label>
+                        "Saat dilimi"
+                        <select on:change=move |ev| {
+                            let args = vec![("timezone", event_target_value(&ev).into())];
+                            run::<Regional>("set-timezone", args, on_error, update);
+                        }>
+                            {r.timezones
+                                .iter()
+                                .map(|zone| view! { <option value=zone.clone() selected=*zone == r.timezone>{zone.clone()}</option> })
+                                .collect_view()}
+                        </select>
+                    </label>
+                </section>
+            }
+        })
+    }
+}
+
+/// The level lives in the welcome extension, which applies it.
+async fn privacy_message(message: wasm_bindgen::JsValue) -> Result<wasm_bindgen::JsValue, String> {
+    call("runtime.sendMessage", &["welcome@karakulak".into(), message]).await
+}
+
+#[component]
+fn PrivacySettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let level = RwSignal::new(None::<String>);
+    spawn_local(async move {
+        if let Ok(current) = privacy_message(object(&[("get", true.into())])).await {
+            level.set(current.as_string());
+        }
+    });
+    let change = move |ev: leptos::ev::Event| {
+        let chosen = event_target_value(&ev);
+        spawn_local(async move {
+            match privacy_message(object(&[("level", chosen.clone().into())])).await {
+                Ok(_) => level.set(Some(chosen)),
+                Err(e) => on_error.set(format!("Hata: {e}")),
+            }
+        });
+    };
+    view! {
+        <section class="card">
+            <label>
+                "Gizlilik seviyesi"
+                <select on:change=change>
+                    {PRIVACY.map(|(code, name)| {
+                        view! { <option value=code selected=move || level.get().as_deref() == Some(code)>{name}</option> }
+                    })}
+                </select>
+            </label>
+            <p class="hint">"Telemetri her seviyede kapalıdır."</p>
+        </section>
+    }
+}
+
+#[component]
+fn SystemSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let updates = RwSignal::new(None::<Updates>);
+    let firewall = RwSignal::new(None::<Firewall>);
+    let refresh = move || run::<Updates>("updates", vec![], on_error, move |u| updates.set(u));
+    refresh();
+    run::<Firewall>("firewall", vec![], on_error, move |f| firewall.set(f));
+
+    // While an update runs, check every few seconds.
+    set_interval(
+        move || {
+            if updates.get_untracked().is_some_and(|u| u.state == "activating") {
+                refresh();
+            }
+        },
+        std::time::Duration::from_secs(3),
+    );
+
+    let update_text = move || match updates.get() {
+        Some(u) if u.state == "activating" => "Güncelleniyor…".to_string(),
+        Some(u) if u.state == "failed" => "Son güncelleme başarısız oldu.".to_string(),
+        Some(u) if u.pending == 0 => "Sistem güncel.".to_string(),
+        Some(u) => format!("{} güncelleme bekliyor.", u.pending),
+        None => String::new(),
+    };
+
+    view! {
+        <section class="card">
+            <label>
+                <span>"Güncellemeler" <small class="hint">{update_text}</small></span>
+                <button
+                    prop:disabled=move || updates.get().is_some_and(|u| u.state == "activating")
+                    on:click={move |_| run::<Updates>("update-now", vec![], on_error, move |u| updates.set(u))}
+                >
+                    "Şimdi güncelle"
+                </button>
+            </label>
+            <p class="hint">"Güvenlik güncellemeleri her gün kendiliğinden kurulur."</p>
+        </section>
+        <section class="card">
+            <label>
+                "Güvenlik duvarı"
+                <input
+                    type="checkbox"
+                    prop:checked=move || firewall.get().is_some_and(|f| f.on)
+                    on:change=move |_| {
+                        let on = !firewall.get_untracked().is_some_and(|f| f.on);
+                        run::<Firewall>("set-firewall", vec![("on", on.into())], on_error, move |f| firewall.set(f));
+                    }
+                />
+            </label>
+            <p class="hint">"Açıkken dışarıdan bu bilgisayara bağlantı kurulamaz. Kapatmak yeniden başlatana kadar geçerlidir."</p>
+        </section>
+        <section class="card">
+            <label>
+                "Yazıcılar"
+                <button on:click=move |_| {
+                    spawn_local(async move {
+                        let _ = call("tabs.create", &[object(&[("url", "http://localhost:631/".into())])]).await;
+                    });
+                }>"Yazıcı ayarlarını aç"</button>
+            </label>
+            <p class="hint">"Ağdaki ve USB'deki çoğu yazıcı sürücü kurmadan çalışır."</p>
+        </section>
+    }
+}
+
 #[component]
 pub fn Settings() -> impl IntoView {
     let (error, set_error) = signal(String::new());
@@ -89,6 +282,12 @@ pub fn Settings() -> impl IntoView {
                     .map(|screen| view! { <ScreenSettings screen screens on_error=set_error /> })
                     .collect_view()
             }}
+            <h2 class="group">"Bölge ve dil"</h2>
+            <RegionSettings on_error=set_error />
+            <h2 class="group">"Gizlilik"</h2>
+            <PrivacySettings on_error=set_error />
+            <h2 class="group">"Sistem"</h2>
+            <SystemSettings on_error=set_error />
         </main>
     }
 }

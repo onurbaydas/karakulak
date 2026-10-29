@@ -73,3 +73,31 @@ select {
   min-height: 1em;
   color: var(--danger);
 }
+
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+label small.hint {
+  display: block;
+}
+
+button {
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+}

@@ -80,10 +80,11 @@ Bitti sayılır: Açılıştan masaüstüne kadar her ekran Karakulak'a ait gör
 
 ## v0.5 — Ayarlar
 
-- [ ] Ayarlar sayfası: dil, klavye, saat dilimi, gizlilik seviyesi
-- [ ] Sistem güncellemeleri tarayıcıdan
-- [ ] Güvenlik duvarı
-- [ ] Yazıcı
+- [x] Ayarlar sayfası: dil, klavye, saat dilimi, gizlilik seviyesi (polkit kuralı,
+  sadece bu ayarlar için şifresiz)
+- [x] Güncellemeler: güvenlik güncellemeleri her gün kendiliğinden, "Şimdi güncelle"
+- [x] Güvenlik duvarı (nftables): içeri bağlantı yok, Ayarlar'dan aç/kapa
+- [x] Yazıcı: CUPS, sürücüsüz yazıcılar; Ayarlar'dan CUPS arayüzü
 
 Bitti sayılır: Terminal açmadan sistemi güncelleyip ayarlarını değiştirebiliyorsun.
 
