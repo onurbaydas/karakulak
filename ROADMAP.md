@@ -31,7 +31,7 @@ eklentiler ona komut gönderir.
   - [x] Ses aç/kıs
   - [x] Wi-Fi listesi ve bağlanma
   - [x] Bluetooth: aç/kapat, eşleşmiş cihazlara bağlan
-  - [ ] Bluetooth: yeni cihaz eşleştirme
+  - [x] Bluetooth: yeni cihaz arama ve eşleştirme (kod istemeyen cihazlar)
   - [x] Ekran parlaklığı: laptop ekranı ve DDC/CI destekli harici monitörler
 - [x] Kilit ekranı: açılışta, uykudan önce ve panelden "Kilitle" ile kilitlenir.
   Kilitliyken ekran yöneticisi bütün pencereleri gizler, sadece kilit sayfasını

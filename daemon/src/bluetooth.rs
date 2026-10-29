@@ -1,5 +1,6 @@
-//! Bluetooth through BlueZ's D-Bus API: power and already paired devices.
-//! Pairing new devices comes later (it needs a pairing agent).
+//! Bluetooth through BlueZ's D-Bus API: power, paired devices, and pairing
+//! new ones. Pairing works for devices that need no PIN (headphones, mice);
+//! PIN entry would need a pairing agent.
 
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -69,6 +70,49 @@ pub fn set_powered(on: bool) -> Result<Value, String> {
         .and_then(|p| p.call_method("Set", &(ADAPTER, "Powered", Variant::from(on))))
         .map_err(err)?;
     list()
+}
+
+/// Searches for a few seconds and returns devices that are not paired yet:
+/// `[{"path", "name"}]`. Discovery belongs to our D-Bus connection, so it
+/// has to finish before this short-lived process exits.
+pub fn scan() -> Result<Value, String> {
+    let bus = Connection::system().map_err(err)?;
+    let adapter_path = adapter(&objects(&bus)?).ok_or("no Bluetooth adapter")?.0.clone();
+    let adapter = Proxy::new(&bus, BLUEZ, adapter_path.as_str(), ADAPTER).map_err(err)?;
+    adapter.call_method("StartDiscovery", &()).map_err(err)?;
+    std::thread::sleep(std::time::Duration::from_secs(8));
+    let _ = adapter.call_method("StopDiscovery", &());
+
+    let mut found: Vec<Value> = objects(&bus)?
+        .iter()
+        .filter_map(|(path, interfaces)| {
+            let props = interfaces.get(DEVICE)?;
+            if prop::<bool>(props, "Paired").unwrap_or(false) {
+                return None;
+            }
+            // Unnamed devices are mostly beacons nobody wants to pair with.
+            let name = prop::<String>(props, "Name")?;
+            Some(json!({ "path": path.as_str(), "name": name }))
+        })
+        .collect();
+    found.sort_by_key(|d| d["name"].to_string());
+    Ok(Value::Array(found))
+}
+
+/// Pairs with a device found by `scan`, trusts it so it reconnects by itself,
+/// and connects.
+pub fn pair(path: &str) -> Result<Value, String> {
+    if !path.starts_with("/org/bluez/") {
+        return Err("not a Bluetooth device".into());
+    }
+    let bus = Connection::system().map_err(err)?;
+    Proxy::new(&bus, BLUEZ, path, DEVICE)
+        .and_then(|d| d.call_method("Pair", &()))
+        .map_err(err)?;
+    Proxy::new(&bus, BLUEZ, path, "org.freedesktop.DBus.Properties")
+        .and_then(|p| p.call_method("Set", &(DEVICE, "Trusted", Variant::from(true))))
+        .map_err(err)?;
+    set_connected(path, true)
 }
 
 /// Connects or disconnects a paired device.

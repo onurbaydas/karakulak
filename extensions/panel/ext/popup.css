@@ -163,3 +163,9 @@ summary {
 .screen small {
   color: var(--muted);
 }
+
+.scan {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: var(--bg);
+}

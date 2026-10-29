@@ -47,6 +47,12 @@ struct Bluetooth {
 }
 
 #[derive(Clone, Deserialize)]
+struct FoundDevice {
+    path: String,
+    name: String,
+}
+
+#[derive(Clone, Deserialize)]
 struct BluetoothDevice {
     path: String,
     name: String,
@@ -333,46 +339,101 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
 #[component]
 fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
     let bluetooth = RwSignal::new(None::<Bluetooth>);
+    let found = RwSignal::new(Vec::<FoundDevice>::new());
+    let scanning = RwSignal::new(false);
+    let pairing = RwSignal::new(None::<String>);
     let update = move |b| bluetooth.set(b);
     run::<Bluetooth>("bluetooth", vec![], on_error, update);
 
-    move || {
+    let scan = move |_| {
+        scanning.set(true);
+        found.set(Vec::new());
+        run::<Vec<FoundDevice>>("bluetooth-scan", vec![], on_error, move |f| {
+            found.set(f.unwrap_or_default());
+            scanning.set(false);
+        });
+    };
+
+    let paired_devices = move || {
         bluetooth.get().map(|b| {
-            let devices = b.devices.into_iter().map(|device| {
-                let (cmd, label) = if device.connected {
-                    ("bluetooth-disconnect", "Bağlantıyı kes")
-                } else {
-                    ("bluetooth-connect", "Bağlan")
-                };
+            b.devices
+                .into_iter()
+                .map(|device| {
+                    let (cmd, label) = if device.connected {
+                        ("bluetooth-disconnect", "Bağlantıyı kes")
+                    } else {
+                        ("bluetooth-connect", "Bağlan")
+                    };
+                    let path = device.path.clone();
+                    view! {
+                        <li>
+                            <button
+                                class:active=device.connected
+                                on:click={move |_| run::<Bluetooth>(cmd, vec![("path", path.clone().into())], on_error, update)}
+                            >
+                                <span>{device.name}</span>
+                                <small>{label}</small>
+                            </button>
+                        </li>
+                    }
+                })
+                .collect_view()
+        })
+    };
+
+    let new_devices = move || {
+        found
+            .get()
+            .into_iter()
+            .map(|device| {
                 let path = device.path.clone();
+                let is_pairing = {
+                    let path = path.clone();
+                    move || pairing.get().as_deref() == Some(path.as_str())
+                };
+                let pair = move |_| {
+                    pairing.set(Some(path.clone()));
+                    let done_path = path.clone();
+                    run::<Bluetooth>("bluetooth-pair", vec![("path", path.clone().into())], on_error, move |b| {
+                        update(b);
+                        found.update(|f| f.retain(|d| d.path != done_path));
+                        pairing.set(None);
+                    });
+                };
                 view! {
                     <li>
-                        <button
-                            class:active=device.connected
-                            on:click={move |_| run::<Bluetooth>(cmd, vec![("path", path.clone().into())], on_error, update)}
-                        >
-                            {device.name}
-                            <small>{format!(" {label}")}</small>
+                        <button on:click=pair>
+                            <span>{device.name}</span>
+                            <small>{move || if is_pairing() { "Eşleştiriliyor…" } else { "Eşleştir" }}</small>
                         </button>
                     </li>
                 }
-            }).collect_view();
-            let powered = b.powered;
-            view! {
-                <details>
-                    <summary>"Bluetooth"</summary>
-                    <label class="row">
-                        <input
-                            type="checkbox"
-                            prop:checked=powered
-                            on:change={move |_| run::<Bluetooth>("bluetooth-power", vec![("on", (!powered).into())], on_error, update)}
-                        />
-                        "Açık"
-                    </label>
-                    <ul class="list">{devices}</ul>
-                </details>
-            }
-        })
+            })
+            .collect_view()
+    };
+
+    view! {
+        <Show when=move || bluetooth.get().is_some()>
+            <details>
+                <summary>"Bluetooth"</summary>
+                <label class="row">
+                    <input
+                        type="checkbox"
+                        prop:checked=move || bluetooth.get().is_some_and(|b| b.powered)
+                        on:change={move |_| {
+                            let on = !bluetooth.get().is_some_and(|b| b.powered);
+                            run::<Bluetooth>("bluetooth-power", vec![("on", on.into())], on_error, update)
+                        }}
+                    />
+                    "Açık"
+                </label>
+                <ul class="list">{paired_devices}</ul>
+                <button class="scan" prop:disabled=move || scanning.get() on:click=scan>
+                    {move || if scanning.get() { "Aranıyor…" } else { "Cihaz ara" }}
+                </button>
+                <ul class="list">{new_devices}</ul>
+            </details>
+        </Show>
     }
 }
 
