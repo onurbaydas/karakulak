@@ -66,6 +66,8 @@ Terminal sekmesinde komut çalıştırabiliyorsun.
 
 ## v0.4 — Görünüm
 
+- [ ] Pencere düzeni: bir ekranda birden fazla Firefox penceresi yan yana
+  (Super+←/→ yarım ekran, Super+↑ tam ekran, kenara sürükleyince yapışma)
 - [ ] Yeni sekme sayfası: saat, sık kullanılanlar, Karakulak teması
 - [ ] Sekmelerin görev çubuğu gibi göründüğü tema, açık ve koyu
 - [ ] Açılış ekranı (Plymouth) ve logo

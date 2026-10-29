@@ -200,7 +200,7 @@ impl State {
         let used: Vec<String> = self
             .space
             .elements()
-            .filter(|w| *w != window)
+            .filter(|w| *w != window && !is_floating(w))
             .filter_map(|w| w.user_data().get::<std::cell::RefCell<String>>().map(|n| n.borrow().clone()))
             .collect();
         outputs
@@ -257,7 +257,7 @@ impl State {
     /// screen shows its own browser. Only once Firefox runs (it has a window);
     /// the command is KARAKULAK_NEW_WINDOW, default `firefox --new-window`.
     pub fn fill_empty_screens(&mut self) {
-        let windows = self.space.elements().count();
+        let windows = self.space.elements().filter(|w| !is_floating(w)).count();
         let screens = self.space.outputs().count();
         if self.lock.locked || windows == 0 || self.windows_requested > 0 || windows >= screens {
             return;
@@ -293,8 +293,12 @@ impl State {
         } else {
             self.windows_requested = self.windows_requested.saturating_sub(1);
             if let Some(window) = self.hide_while_locked(window.clone()) {
-                self.place(window);
-                self.fill_empty_screens();
+                if is_floating(&window) {
+                    self.place_floating(window);
+                } else {
+                    self.place(window);
+                    self.fill_empty_screens();
+                }
             } else if let Some(geometry) = self.primary_output().and_then(|o| self.space.output_geometry(&o)) {
                 toplevel.with_pending_state(|state| state.size = Some(geometry.size));
             }
@@ -304,9 +308,40 @@ impl State {
         }
     }
 
+    /// Dialogs and the video popup keep their own size, centered on a screen.
+    fn place_floating(&mut self, window: Window) {
+        window.user_data().insert_if_missing(|| Floating(std::cell::Cell::new(false)));
+        let Some(geometry) = self.primary_output().and_then(|o| self.space.output_geometry(&o)) else {
+            return;
+        };
+        self.space.map_element(window.clone(), geometry.loc, true);
+        self.center_floating(&window);
+        let keyboard = self.seat.get_keyboard().unwrap();
+        let surface = window.toplevel().unwrap().wl_surface().clone();
+        keyboard.set_focus(self, Some(surface), SERIAL_COUNTER.next_serial());
+    }
+
+    /// Centers a floating window once it knows its size.
+    pub fn center_floating(&mut self, window: &Window) {
+        let Some(floating) = window.user_data().get::<Floating>() else {
+            return;
+        };
+        let size = window.geometry().size;
+        if floating.0.get() || size.w == 0 {
+            return;
+        }
+        let Some(screen) = self.primary_output().and_then(|o| self.space.output_geometry(&o)) else {
+            return;
+        };
+        let offset: Point<i32, Logical> = ((screen.size.w - size.w) / 2, (screen.size.h - size.h) / 2).into();
+        let loc = screen.loc + offset;
+        self.space.map_element(window.clone(), loc, true);
+        floating.0.set(true);
+    }
+
     /// Refits every window after the screen changed size.
     pub fn refit_windows(&mut self) {
-        let windows: Vec<Window> = self.space.elements().cloned().collect();
+        let windows: Vec<Window> = self.space.elements().filter(|w| !is_floating(w)).cloned().collect();
         for window in windows {
             if crate::lock::app_id(&window).as_deref() == Some(crate::lock::LOCK_APP_ID) {
                 self.place_on_primary(window);
@@ -326,4 +361,30 @@ pub struct ClientState {
 impl ClientData for ClientState {
     fn initialized(&self, _client_id: ClientId) {}
     fn disconnected(&self, _client_id: ClientId, _reason: DisconnectReason) {}
+}
+
+/// Marks a floating window; the flag is set once it has been centered.
+struct Floating(std::cell::Cell<bool>);
+
+/// Windows that keep their own size instead of filling a screen: dialogs
+/// (they have a parent), fixed-size windows, and Firefox's video popup.
+pub fn is_floating(window: &Window) -> bool {
+    if window.user_data().get::<Floating>().is_some() {
+        return true;
+    }
+    let Some(toplevel) = window.toplevel() else {
+        return false;
+    };
+    let surface = toplevel.wl_surface();
+    smithay::wayland::compositor::with_states(surface, |states| {
+        let (has_parent, title) = states
+            .data_map
+            .get::<smithay::wayland::shell::xdg::XdgToplevelSurfaceData>()
+            .and_then(|data| data.lock().ok().map(|d| (d.parent.is_some(), d.title.clone())))
+            .unwrap_or((false, None));
+        let mut cached = states.cached_state.get::<smithay::wayland::shell::xdg::SurfaceCachedState>();
+        let current = cached.current();
+        let fixed = current.max_size.w > 0 && current.min_size == current.max_size;
+        has_parent || fixed || title.as_deref() == Some("Picture-in-Picture")
+    })
 }
