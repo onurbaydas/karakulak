@@ -44,7 +44,7 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "wifi-list" => wifi::list(),
         "wifi-connect" => wifi::connect(arg("ssid"), arg("password")),
         "brightness" => brightness::get(),
-        "set-brightness" => brightness::set(msg["level"].as_f64().ok_or("missing level")?),
+        "set-brightness" => brightness::set(arg("id"), msg["level"].as_f64().ok_or("missing level")?),
         "bluetooth" => bluetooth::list(),
         "bluetooth-power" => bluetooth::set_powered(msg["on"].as_bool().unwrap_or(false)),
         "bluetooth-connect" => bluetooth::set_connected(arg("path"), true),

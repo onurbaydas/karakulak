@@ -25,6 +25,13 @@ struct Level {
 }
 
 #[derive(Clone, Deserialize)]
+struct Screen {
+    id: String,
+    name: String,
+    level: f64,
+}
+
+#[derive(Clone, Deserialize)]
 struct Network {
     ssid: String,
     signal: u8,
@@ -175,28 +182,37 @@ fn Volume(on_error: WriteSignal<String>) -> impl IntoView {
 
 #[component]
 fn Brightness(on_error: WriteSignal<String>) -> impl IntoView {
-    let brightness = RwSignal::new(None::<Level>);
-    run::<Level>("brightness", vec![], on_error, move |b| brightness.set(b));
+    let screens = RwSignal::new(Vec::<Screen>::new());
+    let update = move |s: Option<Vec<Screen>>| screens.set(s.unwrap_or_default());
+    run::<Vec<Screen>>("brightness", vec![], on_error, update);
 
     move || {
-        brightness.get().map(|b| {
-            view! {
-                <section class="row">
-                    <span class="icon" title="Parlaklık">"☀"</span>
-                    <input
-                        type="range"
-                        min="5"
-                        max="100"
-                        aria-label="Parlaklık"
-                        prop:value=percent(b.level)
-                        on:change=move |ev| {
-                            let level = slider_level(&ev);
-                            run::<Level>("set-brightness", vec![("level", level)], on_error, move |b| brightness.set(b))
-                        }
-                    />
-                </section>
-            }
-        })
+        screens
+            .get()
+            .into_iter()
+            .map(|screen| {
+                let id = screen.id.clone();
+                view! {
+                    <section class="row">
+                        <span class="icon" title=screen.name.clone()>"☀"</span>
+                        <label class="screen">
+                            <small>{screen.name.clone()}</small>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                aria-label=format!("Parlaklık: {}", screen.name)
+                                prop:value=percent(screen.level)
+                                on:change=move |ev| {
+                                    let args = vec![("id", id.clone().into()), ("level", slider_level(&ev))];
+                                    run::<Vec<Screen>>("set-brightness", args, on_error, update)
+                                }
+                            />
+                        </label>
+                    </section>
+                }
+            })
+            .collect_view()
     }
 }
 

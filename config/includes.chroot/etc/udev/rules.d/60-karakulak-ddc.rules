@@ -1,0 +1,2 @@
+# Let the logged-in user talk DDC/CI to monitors (brightness of external screens).
+SUBSYSTEM=="i2c-dev", KERNEL=="i2c-[0-9]*", ATTRS{class}=="0x03[0-9]*", TAG+="uaccess"

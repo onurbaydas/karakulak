@@ -153,3 +153,13 @@ summary {
   color: var(--danger);
   font-size: 0.9em;
 }
+
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.screen small {
+  color: var(--muted);
+}

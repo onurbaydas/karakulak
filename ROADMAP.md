@@ -32,14 +32,22 @@ eklentiler ona komut gönderir.
   - [x] Wi-Fi listesi ve bağlanma
   - [x] Bluetooth: aç/kapat, eşleşmiş cihazlara bağlan
   - [ ] Bluetooth: yeni cihaz eşleştirme
-  - [x] Ekran parlaklığı
+  - [x] Ekran parlaklığı: laptop ekranı ve DDC/CI destekli harici monitörler
 - [ ] Kilit ekranı: açılışta ve uykudan dönünce şifre sorulur. Görünen kısım
   bir Firefox sayfası, ama kilidi Firefox'un altındaki katman tutar: kilitliyken
   Firefox gizlenir, kısayollar çalışmaz. (cage bunu desteklemiyor, değişebilir.)
 - [x] Kapağı kapatınca uyku (systemd-logind bunu varsayılan olarak yapıyor)
+- [ ] Kendi Rust ekran yöneticimiz (Smithay), cage'in yerine. Bunlar için şart:
+  - [ ] Kilit ekranı (yukarıda)
+  - [ ] Birden fazla ekran: her ekranda ayrı, tam ekran bir Firefox penceresi.
+    Sekmeler ekranlar arasında sürüklenebilir. Panel ana ekranda durur.
+    Monitör takılınca orada yeni pencere açılır, çıkarılınca sekmeleri ana
+    ekrana geçer.
+  - [ ] Parlaklık donanımın desteklemediği laptoplarda ekran yöneticisi
+    üzerinden kısılır
 
 Bitti sayılır: Panelden Wi-Fi'ye bağlanıp bilgisayarı kapatabiliyorsun. Uykudan
-dönünce şifre soruluyor.
+dönünce şifre soruluyor. İki monitörde her ekranda ayrı Firefox açılıyor.
 Hepsi önce kendi bilgisayarımızdaki Firefox'ta denenir, sonra ISO'ya girer.
 
 ## v0.3 — Dosyalar
