@@ -115,14 +115,16 @@ impl State {
     }
 
     /// Makes `window` fill the first screen and gives it the keyboard.
-    pub fn fullscreen(&mut self, window: Window) {
+    /// Windows are maximized, which keeps Firefox's tabs and toolbar; real
+    /// fullscreen (hiding them) is only for when a page asks, e.g. a video.
+    pub fn place(&mut self, window: Window) {
         let Some(output) = self.space.outputs().next().cloned() else {
             return;
         };
         let geometry = self.space.output_geometry(&output).unwrap();
         let toplevel = window.toplevel().unwrap();
         toplevel.with_pending_state(|state| {
-            state.states.set(xdg_toplevel::State::Fullscreen);
+            state.states.set(xdg_toplevel::State::Maximized);
             state.states.set(xdg_toplevel::State::Activated);
             state.size = Some(geometry.size);
         });
@@ -139,7 +141,7 @@ impl State {
     pub fn refit_windows(&mut self) {
         let windows: Vec<Window> = self.space.elements().cloned().collect();
         for window in windows {
-            self.fullscreen(window);
+            self.place(window);
         }
     }
 }

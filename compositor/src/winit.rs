@@ -19,6 +19,7 @@ pub fn init_winit(
     state: &mut State,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let (mut backend, winit) = winit::init()?;
+    backend.window().set_title("Karakulak");
 
     let mode = Mode {
         size: backend.window_size(),

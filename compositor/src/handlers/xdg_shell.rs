@@ -1,9 +1,13 @@
-//! Windows. Every toplevel is fullscreen; requests to move, resize, maximize
-//! or leave fullscreen are ignored. Popups (menus, tooltips) work normally.
+//! Windows. Every toplevel fills the screen; requests to move, resize or
+//! unmaximize are ignored. Pages may still go fullscreen (videos).
+//! Popups (menus, tooltips) work normally.
 
 use smithay::{
     desktop::{PopupKind, PopupManager, Space, Window, find_popup_root_surface, get_popup_toplevel_coords},
-    reexports::wayland_server::protocol::{wl_output, wl_seat, wl_surface::WlSurface},
+    reexports::{
+        wayland_protocols::xdg::shell::server::xdg_toplevel,
+        wayland_server::protocol::{wl_output, wl_seat, wl_surface::WlSurface},
+    },
     utils::Serial,
     wayland::{
         compositor::with_states,
@@ -22,7 +26,7 @@ impl XdgShellHandler for State {
     }
 
     fn new_toplevel(&mut self, surface: ToplevelSurface) {
-        self.fullscreen(Window::new_wayland_window(surface));
+        self.place(Window::new_wayland_window(surface));
     }
 
     fn new_popup(&mut self, surface: PopupSurface, _positioner: PositionerState) {
@@ -40,15 +44,20 @@ impl XdgShellHandler for State {
     }
 
     fn fullscreen_request(&mut self, surface: ToplevelSurface, _output: Option<wl_output::WlOutput>) {
-        // Already fullscreen; answer with the current state.
+        surface.with_pending_state(|state| state.states.set(xdg_toplevel::State::Fullscreen));
         surface.send_configure();
     }
 
     fn unfullscreen_request(&mut self, surface: ToplevelSurface) {
+        surface.with_pending_state(|state| state.states.unset(xdg_toplevel::State::Fullscreen));
         surface.send_configure();
     }
 
     fn maximize_request(&mut self, surface: ToplevelSurface) {
+        surface.send_configure();
+    }
+
+    fn unmaximize_request(&mut self, surface: ToplevelSurface) {
         surface.send_configure();
     }
 
