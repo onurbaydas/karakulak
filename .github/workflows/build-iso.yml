@@ -16,13 +16,16 @@ jobs:
           targets: wasm32-unknown-unknown
           components: clippy
       - name: System libraries
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config libxkbcommon-dev libwayland-dev libegl-dev
       - name: karakulakd
         working-directory: daemon
         run: |
           cargo clippy --release
           cargo test
           cargo build --release
+      - name: Compositor
+        working-directory: compositor
+        run: cargo clippy --release
       - name: Extensions
         working-directory: extensions
         run: cargo clippy --target wasm32-unknown-unknown --release

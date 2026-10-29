@@ -44,6 +44,7 @@ Try an extension in Firefox (builds everything, opens a separate dev profile):
 ```sh
 ./dev.sh          # panel
 ./dev.sh welcome
+./dev.sh session   # whole session: compositor + fullscreen Firefox + panel
 ```
 
 Release Firefox only installs signed extensions, so the image ships signed
@@ -70,5 +71,6 @@ daemon/dev-install.sh
 | `config/includes.chroot/` | Files copied into the image as-is |
 | `config/includes.installer/` | Debian installer preseed |
 | `extensions/` | Karakulak's own Firefox extensions (Rust + Leptos) |
+| `compositor/` | Karakulak's Wayland compositor (Rust, Smithay) |
 | `daemon/` | `karakulakd`, the Rust helper extensions talk to via native messaging |
 | `docs/adr/` | Architecture decision records |

@@ -19,6 +19,7 @@ graphify-out/
 
 # Rust
 daemon/target/
+compositor/target/
 
 # Built by CI
 config/includes.chroot/usr/bin/karakulakd
