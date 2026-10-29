@@ -1,14 +1,48 @@
-/* Tabs below the toolbar, acting as the taskbar. */
+/* Karakulak: the browser is the desktop. All of Firefox's bars sit at the
+   bottom like a taskbar: tabs at the very bottom, the address bar above. */
+
+:root {
+	--karakulak-bg: #151310;
+	--karakulak-bar: #1d1a16;
+	--karakulak-field: #2a2620;
+	--karakulak-fg: #eee8df;
+	--karakulak-muted: #a39a8e;
+	--karakulak-accent: #c8813f;
+
+	--toolbox-bgcolor: var(--karakulak-bg) !important;
+	--toolbox-bgcolor-inactive: var(--karakulak-bg) !important;
+	--toolbar-bgcolor: var(--karakulak-bar) !important;
+	--toolbar-color: var(--karakulak-fg) !important;
+	--toolbar-field-background-color: var(--karakulak-field) !important;
+	--toolbar-field-focus-background-color: var(--karakulak-field) !important;
+	--toolbar-field-color: var(--karakulak-fg) !important;
+	--toolbar-field-focus-border-color: var(--karakulak-accent) !important;
+	--tab-selected-bgcolor: var(--karakulak-field) !important;
+	--tab-selected-textcolor: var(--karakulak-fg) !important;
+	--focus-outline-color: var(--karakulak-accent) !important;
+	--toolbarbutton-icon-fill: var(--karakulak-fg) !important;
+	--lwt-text-color: var(--karakulak-muted) !important;
+	--chrome-content-separator-color: transparent !important;
+}
+
+/* Bars at the bottom: the window stacks content first, then the toolbox;
+   inside the toolbox the tab strip comes last. */
+#main-window body {
+	flex-direction: column-reverse !important;
+}
+
 #navigator-toolbox {
-	display: flex !important;
-	flex-direction: column !important;
+	flex-direction: column-reverse !important;
+	border-top: 1px solid var(--karakulak-field) !important;
+	border-bottom: none !important;
 }
 
-#TabsToolbar {
-	order: 2 !important;
+/* The selected tab is marked by a copper line, like a taskbar entry. */
+.tab-background[selected] {
+	box-shadow: inset 0 -2px 0 var(--karakulak-accent) !important;
 }
 
-/* No window controls: cage manages a single fullscreen window. */
+/* No window buttons: the compositor manages windows. */
 .titlebar-buttonbox-container,
 .titlebar-spacer {
 	display: none !important;
