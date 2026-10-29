@@ -21,7 +21,7 @@
 body {
   width: 20rem;
   margin: 0;
-  padding: 1rem;
+  padding: 0.75rem;
   background: var(--bg);
   color: var(--fg);
   font: 14px/1.4 system-ui, sans-serif;
@@ -41,12 +41,13 @@ body {
 
 .power {
   display: grid;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 
 button {
-  padding: 0.6rem;
+  padding: 0.45rem;
   font: inherit;
   color: inherit;
   background: var(--card);

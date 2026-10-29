@@ -4,6 +4,7 @@
 use std::time::Duration;
 
 mod files;
+mod newtab;
 mod settings;
 mod terminal;
 
@@ -495,6 +496,8 @@ pub fn start() {
     let path = window().location().pathname().unwrap_or_default();
     if path.ends_with("/files.html") {
         mount_to_body(files::Files);
+    } else if path.ends_with("/newtab.html") {
+        mount_to_body(newtab::NewTab);
     } else if path.ends_with("/settings.html") {
         mount_to_body(settings::Settings);
     } else if path.ends_with("/terminal.html") {
