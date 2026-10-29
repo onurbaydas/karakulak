@@ -25,9 +25,12 @@ pub const LOCK_APP_ID: &str = "karakulak-lock";
 pub enum LockEvent {
     /// Reply to the waiting client, unlock if the password was right.
     Checked { ok: bool, reply_to: UnixStream },
-    /// The machine is about to sleep.
-    Sleep,
+    /// The machine is about to sleep; signal `done` once the lock is drawn.
+    Sleep { done: std::sync::mpsc::Sender<()> },
 }
+
+/// Time for the lock window to be drawn before the machine may sleep.
+const LOCK_DRAW_TIME: std::time::Duration = std::time::Duration::from_millis(500);
 
 #[derive(Default)]
 pub struct Lock {
@@ -74,6 +77,7 @@ fn spawn_lock_window() {
 }
 
 /// Locks before suspend, so the screen is locked when the machine wakes up.
+/// A logind "delay" inhibitor holds sleep back until the lock is drawn.
 fn watch_sleep(sender: channel::Sender<LockEvent>) {
     std::thread::spawn(move || {
         let watch = || -> zbus::Result<()> {
@@ -84,12 +88,25 @@ fn watch_sleep(sender: channel::Sender<LockEvent>) {
                 "/org/freedesktop/login1",
                 "org.freedesktop.login1.Manager",
             )?;
+            let inhibit = || -> zbus::Result<zbus::zvariant::OwnedFd> {
+                manager.call("Inhibit", &("sleep", "Karakulak", "Lock the screen before sleeping", "delay"))
+            };
+            let mut inhibitor = Some(inhibit()?);
             for signal in manager.receive_signal("PrepareForSleep")? {
                 let (going_to_sleep,): (bool,) = signal.body().deserialize()?;
-                if going_to_sleep && sender.send(LockEvent::Sleep).is_err() {
-                    break;
+                if going_to_sleep {
+                    let (done, drawn) = std::sync::mpsc::channel();
+                    if sender.send(LockEvent::Sleep { done }).is_err() {
+                        break;
+                    }
+                    let _ = drawn.recv_timeout(std::time::Duration::from_secs(3));
+                    // Closing the inhibitor lets the machine sleep.
+                    inhibitor = None;
+                } else if inhibitor.is_none() {
+                    inhibitor = Some(inhibit()?);
                 }
             }
+            drop(inhibitor);
             Ok(())
         };
         if let Err(e) = watch() {
@@ -125,7 +142,16 @@ impl State {
                 };
                 let _ = std::io::Write::write_all(&mut reply_to, format!("{reply}\n").as_bytes());
             }
-            LockEvent::Sleep => self.lock(),
+            LockEvent::Sleep { done } => {
+                self.lock();
+                let _ = self.loop_handle.insert_source(
+                    smithay::reexports::calloop::timer::Timer::from_duration(LOCK_DRAW_TIME),
+                    move |_, _, _| {
+                        let _ = done.send(());
+                        smithay::reexports::calloop::timer::TimeoutAction::Drop
+                    },
+                );
+            }
         }
     }
 
