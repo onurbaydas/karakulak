@@ -88,6 +88,22 @@ Bitti sayılır: Açılıştan masaüstüne kadar her ekran Karakulak'a ait gör
 
 Bitti sayılır: Terminal açmadan sistemi güncelleyip ayarlarını değiştirebiliyorsun.
 
+## v0.6 — Günlük kullanım ve test
+
+- [ ] `./vm.sh`: ISO'yu tek komutla sanal makinede açar
+- [ ] GitHub'da her ISO için otomatik açılış testi (ekran görüntüsüyle)
+- [ ] Klavyedeki ses ve parlaklık tuşları
+- [ ] Touchpad: dokunarak tıklama, doğal kaydırma
+- [ ] Boşta kalınca ekran kararır, kapanır, kilitlenir
+- [ ] Pil azalınca uyarı, kritik seviyede uyku
+- [ ] Print Screen ile ekran görüntüsü (Resimler klasörüne)
+- [ ] Gece ışığı
+- [ ] Ses ve parlaklık değişince ekranda küçük gösterge
+- [ ] Önerilen eklentiler sayfası (uBlock Origin gibi, tek tıkla kurulur)
+
+Bitti sayılır: ISO sanal makinede açılıyor ve otomatik test geçiyor; laptopta
+tuşlar, touchpad ve pil uyarısı çalışıyor.
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)
