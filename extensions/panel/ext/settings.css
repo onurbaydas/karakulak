@@ -98,6 +98,10 @@ button:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
+button.danger {
+  color: var(--danger);
+}
+
 button:disabled {
   opacity: 0.5;
 }

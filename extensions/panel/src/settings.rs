@@ -105,6 +105,64 @@ const KEYBOARDS: [(&str, &str, &str); 6] = [
     ("fr", "", "Français"),
 ];
 #[derive(Clone, Deserialize)]
+pub struct Vpn {
+    pub id: String,
+    pub name: String,
+    pub active: bool,
+}
+
+/// Reads the chosen file as text: `(file name, contents)`.
+async fn read_chosen_file(ev: &leptos::ev::Event) -> Option<(String, String)> {
+    use wasm_bindgen::JsCast;
+    let input = ev.target()?;
+    let file = js_sys::Reflect::get(&karakulak_browser::get(&input, "files"), &0.into()).ok()?;
+    let name = karakulak_browser::get(&file, "name").as_string()?;
+    let text: js_sys::Function = karakulak_browser::get(&file, "text").dyn_into().ok()?;
+    let promise: js_sys::Promise = text.call0(&file).ok()?.dyn_into().ok()?;
+    let contents = wasm_bindgen_futures::JsFuture::from(promise).await.ok()?.as_string()?;
+    Some((name, contents))
+}
+
+#[component]
+fn VpnSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let vpns = RwSignal::new(Vec::<Vpn>::new());
+    let update = move |v: Option<Vec<Vpn>>| vpns.set(v.unwrap_or_default());
+    run::<Vec<Vpn>>("vpn-list", vec![], on_error, update);
+    let add = move |ev: leptos::ev::Event| {
+        spawn_local(async move {
+            if let Some((name, config)) = read_chosen_file(&ev).await {
+                run::<Vec<Vpn>>("vpn-import", vec![("name", name.into()), ("config", config.into())], on_error, update);
+            }
+        });
+    };
+    view! {
+        <section class="card">
+            {move || {
+                vpns.get()
+                    .into_iter()
+                    .map(|vpn| {
+                        let id = vpn.id.clone();
+                        view! {
+                            <label>
+                                <span>{vpn.name} <small class="hint">{if vpn.active { "Bağlı" } else { "Kapalı" }}</small></span>
+                                <button class="danger" on:click={move |_| run::<Vec<Vpn>>("vpn-remove", vec![("id", id.clone().into())], on_error, update)}>
+                                    "Sil"
+                                </button>
+                            </label>
+                        }
+                    })
+                    .collect_view()
+            }}
+            <label>
+                "WireGuard dosyası ekle"
+                <input type="file" accept=".conf" on:change=add />
+            </label>
+            <p class="hint">"VPN sağlayıcının (Mullvad, Proton...) verdiği .conf dosyasını seç. Panelden açıp kapatabilirsin."</p>
+        </section>
+    }
+}
+
+#[derive(Clone, Deserialize)]
 struct ScreenBrightness {
     id: String,
     name: String,
@@ -393,6 +451,8 @@ pub fn Settings() -> impl IntoView {
             <RegionSettings on_error=set_error />
             <h2 class="group">"Gizlilik"</h2>
             <PrivacySettings on_error=set_error />
+            <h2 class="group">"VPN"</h2>
+            <VpnSettings on_error=set_error />
             <h2 class="group">"Sistem"</h2>
             <SystemSettings on_error=set_error />
             <h2 class="group">"Önerilen eklentiler"</h2>

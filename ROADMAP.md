@@ -111,7 +111,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
   gerçekten kapanır (#1, gerçek donanımda denenecek)
 - [x] Uykuya geçmeden önce kesin kilit (#2)
 - [x] Wi-Fi'de ağ başına farklı MAC adresi, bilgisayar adı ağa gönderilmez
-- [ ] WireGuard VPN: Ayarlar'dan dosya yükle, panelden aç/kapa
+- [x] WireGuard VPN: Ayarlar'dan dosya yükle, panelden aç/kapa
 - [ ] Ses cihazı seçimi, mikrofon seviyesi
 - [ ] Kesirli ölçek (%125, %150)
 - [ ] İngilizce arayüz (sistem diline göre)

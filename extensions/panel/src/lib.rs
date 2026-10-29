@@ -442,6 +442,34 @@ fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
     }
 }
 
+/// VPN switches; hidden until a VPN is added in Settings.
+#[component]
+fn Vpns(on_error: WriteSignal<String>) -> impl IntoView {
+    use settings::Vpn;
+    let vpns = RwSignal::new(Vec::<Vpn>::new());
+    let update = move |v: Option<Vec<Vpn>>| vpns.set(v.unwrap_or_default());
+    run::<Vec<Vpn>>("vpn-list", vec![], on_error, update);
+    move || {
+        vpns.get()
+            .into_iter()
+            .map(|vpn| {
+                let id = vpn.id.clone();
+                let active = vpn.active;
+                view! {
+                    <label class="row vpn">
+                        <input
+                            type="checkbox"
+                            prop:checked=active
+                            on:change={move |_| run::<Vec<Vpn>>("vpn-set", vec![("id", id.clone().into()), ("on", (!active).into())], on_error, update)}
+                        />
+                        {format!("VPN: {}", vpn.name)}
+                    </label>
+                }
+            })
+            .collect_view()
+    }
+}
+
 #[component]
 fn Panel() -> impl IntoView {
     let (time, set_time) = signal(clock());
@@ -461,6 +489,7 @@ fn Panel() -> impl IntoView {
         <time id="clock">{move || time.get().0}</time>
         <p id="date">{move || time.get().1}</p>
         <p id="battery">{battery}</p>
+        <Vpns on_error=set_error />
         <Volume on_error=set_error />
         <Brightness on_error=set_error />
         <Wifi on_error=set_error />

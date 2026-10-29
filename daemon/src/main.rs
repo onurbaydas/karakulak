@@ -9,6 +9,7 @@ mod files;
 mod terminal;
 mod system;
 mod usb;
+mod vpn;
 mod wifi;
 
 use serde_json::{json, Value};
@@ -73,6 +74,10 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "update-now" => system::update_now(),
         "firewall" => system::firewall(),
         "set-firewall" => system::set_firewall(msg["on"].as_bool().unwrap_or(true)),
+        "vpn-list" => vpn::list(),
+        "vpn-import" => vpn::import(arg("name"), arg("config")),
+        "vpn-set" => vpn::set_active(arg("id"), msg["on"].as_bool().unwrap_or(false)),
+        "vpn-remove" => vpn::remove(arg("id")),
         "term-open" => terminal::open(num(msg, "cols"), num(msg, "rows")),
         "term-input" => terminal::input(num(msg, "term"), arg("data")),
         "term-resize" => terminal::resize(num(msg, "term"), num(msg, "cols"), num(msg, "rows")),
