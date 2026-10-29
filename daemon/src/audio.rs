@@ -52,3 +52,75 @@ mod tests {
         assert_eq!(parse("Volume: 1.00 [MUTED]\n").unwrap(), json!({ "level": 1.0, "muted": true }));
     }
 }
+
+fn pactl(args: &[&str]) -> Result<String, String> {
+    let output = Command::new("pactl").args(args).output().map_err(|e| format!("pactl: {e}"))?;
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+/// Level of the first channel, 0.0..=1.0.
+fn first_channel_level(device: &Value) -> f64 {
+    device["volume"]
+        .as_object()
+        .and_then(|channels| channels.values().next())
+        .and_then(|c| c["value_percent"].as_str())
+        .and_then(|p| p.trim_end_matches('%').parse::<f64>().ok())
+        .map_or(0.0, |p| p / 100.0)
+}
+
+fn list_devices(kind: &str, default: &str) -> Result<Vec<Value>, String> {
+    let all: Value = serde_json::from_str(&pactl(&["-f", "json", "list", kind])?).map_err(|e| e.to_string())?;
+    Ok(all
+        .as_array()
+        .into_iter()
+        .flatten()
+        // Monitors replay an output; they are not microphones.
+        .filter(|d| !d["name"].as_str().unwrap_or("").ends_with(".monitor"))
+        .map(|d| {
+            json!({
+                "id": d["name"],
+                "name": d["description"],
+                "default": d["name"].as_str() == Some(default),
+                "level": first_channel_level(d),
+            })
+        })
+        .collect())
+}
+
+/// `{"outputs": [{"id", "name", "default", "level"}], "inputs": [...]}`
+pub fn devices() -> Result<Value, String> {
+    let sink = pactl(&["get-default-sink"])?;
+    let source = pactl(&["get-default-source"])?;
+    Ok(json!({
+        "outputs": list_devices("sinks", &sink)?,
+        "inputs": list_devices("sources", &source)?,
+    }))
+}
+
+fn checked(id: &str) -> Result<&str, String> {
+    if !id.is_empty() && id.chars().all(|c| c.is_ascii_alphanumeric() || "._-:".contains(c)) {
+        Ok(id)
+    } else {
+        Err("not a sound device".into())
+    }
+}
+
+/// Playing sounds follow the new default by themselves.
+pub fn set_output(id: &str) -> Result<Value, String> {
+    pactl(&["set-default-sink", checked(id)?])?;
+    devices()
+}
+
+pub fn set_input(id: &str) -> Result<Value, String> {
+    pactl(&["set-default-source", checked(id)?])?;
+    devices()
+}
+
+pub fn set_input_level(level: f64) -> Result<Value, String> {
+    let percent = format!("{}%", (level.clamp(0.0, 1.0) * 100.0).round());
+    pactl(&["set-source-volume", "@DEFAULT_SOURCE@", &percent])?;
+    devices()
+}

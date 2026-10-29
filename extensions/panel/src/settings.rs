@@ -105,6 +105,70 @@ const KEYBOARDS: [(&str, &str, &str); 6] = [
     ("fr", "", "Français"),
 ];
 #[derive(Clone, Deserialize)]
+pub struct SoundDevice {
+    pub id: String,
+    pub name: String,
+    pub default: bool,
+    pub level: f64,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct SoundDevices {
+    pub outputs: Vec<SoundDevice>,
+    pub inputs: Vec<SoundDevice>,
+}
+
+/// A `<select>` of sound devices; picking one makes it the default.
+pub fn device_select(
+    devices: Vec<SoundDevice>,
+    cmd: &'static str,
+    on_error: WriteSignal<String>,
+    update: impl Fn(Option<SoundDevices>) + Copy + 'static,
+) -> impl IntoView {
+    view! {
+        <select on:change=move |ev| {
+            run::<SoundDevices>(cmd, vec![("id", event_target_value(&ev).into())], on_error, update);
+        }>
+            {devices
+                .into_iter()
+                .map(|d| view! { <option value=d.id.clone() selected=d.default>{d.name}</option> })
+                .collect_view()}
+        </select>
+    }
+}
+
+#[component]
+fn SoundSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let devices = RwSignal::new(None::<SoundDevices>);
+    let update = move |d: Option<SoundDevices>| devices.set(d);
+    run::<SoundDevices>("sound-devices", vec![], on_error, update);
+    move || {
+        devices.get().map(|d| {
+            let mic_level = d.inputs.iter().find(|i| i.default).map_or(0.0, |i| i.level);
+            view! {
+                <section class="card">
+                    <label>"Çıkış" {device_select(d.outputs, "set-sound-output", on_error, update)}</label>
+                    <label>"Mikrofon" {device_select(d.inputs, "set-sound-input", on_error, update)}</label>
+                    <label>
+                        "Mikrofon seviyesi"
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            prop:value=((mic_level * 100.0).round() as u32).to_string()
+                            on:change=move |ev| {
+                                let level = event_target_value(&ev).parse::<f64>().unwrap_or(0.0) / 100.0;
+                                run::<SoundDevices>("set-mic-level", vec![("level", level.into())], on_error, update);
+                            }
+                        />
+                    </label>
+                </section>
+            }
+        })
+    }
+}
+
+#[derive(Clone, Deserialize)]
 pub struct Vpn {
     pub id: String,
     pub name: String,
@@ -451,6 +515,8 @@ pub fn Settings() -> impl IntoView {
             <RegionSettings on_error=set_error />
             <h2 class="group">"Gizlilik"</h2>
             <PrivacySettings on_error=set_error />
+            <h2 class="group">"Ses"</h2>
+            <SoundSettings on_error=set_error />
             <h2 class="group">"VPN"</h2>
             <VpnSettings on_error=set_error />
             <h2 class="group">"Sistem"</h2>

@@ -165,6 +165,17 @@ summary {
   color: var(--muted);
 }
 
+.device select {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0.3rem;
+  font: inherit;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+}
+
 .scan {
   width: 100%;
   margin-top: 0.5rem;

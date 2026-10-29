@@ -162,6 +162,18 @@ fn slider_level(ev: &leptos::ev::Event) -> JsValue {
 fn Volume(on_error: WriteSignal<String>) -> impl IntoView {
     let volume = RwSignal::new(None::<Level>);
     run::<Level>("volume", vec![], on_error, move |v| volume.set(v));
+    let devices = RwSignal::new(None::<settings::SoundDevices>);
+    let update = move |d: Option<settings::SoundDevices>| {
+        devices.set(d);
+        run::<Level>("volume", vec![], on_error, move |v| volume.set(v));
+    };
+    run::<settings::SoundDevices>("sound-devices", vec![], on_error, move |d| devices.set(d));
+    let output_select = move || {
+        devices
+            .get()
+            .filter(|d| d.outputs.len() > 1)
+            .map(|d| view! { <div class="device">{settings::device_select(d.outputs, "set-sound-output", on_error, update)}</div> })
+    };
 
     move || {
         volume.get().map(|v| {
@@ -186,6 +198,7 @@ fn Volume(on_error: WriteSignal<String>) -> impl IntoView {
                         }
                     />
                 </section>
+                {output_select}
             }
         })
     }
