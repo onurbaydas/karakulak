@@ -1,6 +1,13 @@
-# Session
-cage
+# Session (karakulak-compositor and its libraries)
 firefox
+libseat1
+libinput10
+libgbm1
+libdisplay-info2
+libxkbcommon0
+libegl1
+libgles2
+dmz-cursor-theme
 libpam-systemd
 dbus-user-session
 

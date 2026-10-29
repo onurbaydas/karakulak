@@ -1,5 +1,5 @@
 #!/bin/sh
-# Prepare the Firefox profile, then run Firefox fullscreen inside cage.
+# Prepare the Firefox profile, then run Karakulak's compositor with Firefox.
 set -e
 
 PROFILE="$HOME/.karakulak/profile"
@@ -9,4 +9,7 @@ if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
 	cp /usr/share/karakulak/firefox/userChrome.css "$PROFILE/chrome/userChrome.css"
 fi
 
-exec cage -- firefox --profile "$PROFILE"
+export XCURSOR_THEME=DMZ-White
+# Extra screens get a window from the running Firefox (same profile).
+export KARAKULAK_NEW_WINDOW="firefox --profile $PROFILE --new-window"
+exec karakulak-compositor -- firefox --profile "$PROFILE"

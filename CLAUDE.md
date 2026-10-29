@@ -1,7 +1,7 @@
 # Karakulak
 
-Browser-only Linux distribution: Debian live ISO that boots into fullscreen Firefox
-(cage). See README.md for scope and docs/adr/ for decisions.
+Browser-only Linux distribution: Debian ISO that boots into Firefox inside Karakulak's
+own Rust compositor (compositor/). See README.md for scope and docs/adr/ for decisions.
 
 ## Rules
 

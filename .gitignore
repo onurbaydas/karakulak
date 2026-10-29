@@ -23,7 +23,9 @@ compositor/target/
 
 # Built by CI
 config/includes.chroot/usr/bin/karakulakd
+config/includes.chroot/usr/bin/karakulak-compositor
 
 # WebAssembly builds
 extensions/target/
 extensions/*/ext/pkg/
+compositor/target-container/

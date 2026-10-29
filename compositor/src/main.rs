@@ -4,10 +4,12 @@
 //!
 //! Usage: karakulak-compositor -- firefox --no-remote
 
+mod cursor;
 mod handlers;
 mod input;
 mod ipc;
 mod state;
+mod udev;
 mod winit;
 
 use smithay::reexports::{calloop::EventLoop, wayland_server::Display};
@@ -20,9 +22,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let display: Display<State> = Display::new()?;
     let mut state = State::new(&mut event_loop, display);
 
-    // For now the compositor runs as a window inside another desktop, which
-    // is how it is developed and tested. Running on real screens comes next.
-    winit::init_winit(&mut event_loop, &mut state)?;
+    // Inside another desktop (development) we run as a window; started from a
+    // text console we take over the real screens.
+    let nested = std::env::var_os("WAYLAND_DISPLAY").is_some() || std::env::var_os("DISPLAY").is_some();
+    if nested {
+        winit::init_winit(&mut event_loop, &mut state)?;
+    } else {
+        udev::init_udev(&mut event_loop, &mut state)?;
+    }
 
     let control = ipc::init(&mut event_loop, &state.socket_name.to_string_lossy())?;
 
@@ -34,7 +41,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     spawn_session();
 
-    event_loop.run(None, &mut state, |_| {})?;
+    event_loop.run(None, &mut state, |state| {
+        state.space.refresh();
+        state.popups.cleanup();
+        let _ = state.display_handle.flush_clients();
+    })?;
     Ok(())
 }
 

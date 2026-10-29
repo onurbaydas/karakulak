@@ -39,14 +39,14 @@ eklentiler ona komut gönderir.
 - [x] Kapağı kapatınca uyku (systemd-logind bunu varsayılan olarak yapıyor)
 - [ ] Kendi Rust ekran yöneticimiz (Smithay), cage'in yerine. Bunlar için şart:
   - [ ] Kilit ekranı (yukarıda)
-  - [ ] Birden fazla ekran: her ekranda ayrı, tam ekran bir Firefox penceresi.
-    Sekmeler ekranlar arasında sürüklenebilir. Panel ana ekranda durur.
-    Monitör takılınca orada yeni pencere açılır, çıkarılınca sekmeleri ana
-    ekrana geçer.
   - [x] Temel: Firefox'u ekranı kaplayacak şekilde açar (şimdilik başka bir
     masaüstünün içinde pencere olarak, `./dev.sh session`)
   - [x] Parlaklık: ekran yöneticisi görüntüyü karartır, her ekranda çalışır
-  - [ ] Gerçek ekranlarda, masaüstü olmadan çalışma (DRM/KMS)
+  - [x] Gerçek ekranlarda, masaüstü olmadan çalışma (DRM/KMS, birden fazla
+    ekran kartı), ISO'da cage'in yerini aldı
+  - [x] Her ekranda ayrı Firefox penceresi (boş ekran için Firefox'tan yeni
+    pencere istenir)
+  - [ ] Parlaklık: önce donanım, olmazsa ekran kartının renk tablosu (gamma)
 
 Bitti sayılır: Panelden Wi-Fi'ye bağlanıp bilgisayarı kapatabiliyorsun. Uykudan
 dönünce şifre soruluyor. İki monitörde her ekranda ayrı Firefox açılıyor.

@@ -16,16 +16,13 @@ jobs:
           targets: wasm32-unknown-unknown
           components: clippy
       - name: System libraries
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config libxkbcommon-dev libwayland-dev libegl-dev
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config
       - name: karakulakd
         working-directory: daemon
         run: |
           cargo clippy --release
           cargo test
           cargo build --release
-      - name: Compositor
-        working-directory: compositor
-        run: cargo clippy --release
       - name: Extensions
         working-directory: extensions
         run: cargo clippy --target wasm32-unknown-unknown --release
@@ -33,6 +30,29 @@ jobs:
         with:
           name: karakulakd
           path: daemon/target/release/karakulakd
+
+  # Built on Debian so it links against the same libraries as the image.
+  compositor:
+    runs-on: ubuntu-latest
+    container:
+      image: rust:1-trixie
+    steps:
+      - uses: actions/checkout@v4
+      - name: System libraries
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends libseat-dev libinput-dev libgbm-dev \
+            libdisplay-info-dev libxkbcommon-dev libwayland-dev libudev-dev libegl-dev pkg-config
+      - name: Build
+        working-directory: compositor
+        run: |
+          rustup component add clippy
+          cargo clippy --release
+          cargo build --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: karakulak-compositor
+          path: compositor/target/release/karakulak-compositor
 
   # Signs extensions whose version changed and commits the signed .xpi files.
   sign:
@@ -71,8 +91,8 @@ jobs:
           git push
 
   iso:
-    needs: [test, sign]
-    if: ${{ !cancelled() && needs.test.result == 'success' }}
+    needs: [test, compositor, sign]
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.compositor.result == 'success' }}
     runs-on: ubuntu-latest
     container:
       image: debian:trixie
@@ -88,9 +108,14 @@ jobs:
           name: karakulakd
           path: config/includes.chroot/usr/bin
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulak-compositor
+          path: config/includes.chroot/usr/bin
+
       - name: Install live-build
         run: |
-          chmod +x config/includes.chroot/usr/bin/karakulakd
+          chmod +x config/includes.chroot/usr/bin/karakulakd config/includes.chroot/usr/bin/karakulak-compositor
           apt-get update
           apt-get install -y live-build
 

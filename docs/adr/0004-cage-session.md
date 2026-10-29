@@ -1,6 +1,6 @@
 # 0004. cage as the session compositor
 
-- Status: accepted
+- Status: superseded by 0009
 - Date: 2026-10-29
 
 ## Context

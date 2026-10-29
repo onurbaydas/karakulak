@@ -26,7 +26,9 @@ impl XdgShellHandler for State {
     }
 
     fn new_toplevel(&mut self, surface: ToplevelSurface) {
+        self.windows_requested = self.windows_requested.saturating_sub(1);
         self.place(Window::new_wayland_window(surface));
+        self.fill_empty_screens();
     }
 
     fn new_popup(&mut self, surface: PopupSurface, _positioner: PositionerState) {
@@ -107,8 +109,10 @@ impl State {
             return;
         };
 
-        let output = self.space.outputs().next().unwrap();
-        let output_geo = self.space.output_geometry(output).unwrap();
+        let Some(output) = self.space.outputs_for_element(window).into_iter().next() else {
+            return;
+        };
+        let output_geo = self.space.output_geometry(&output).unwrap();
         let window_geo = self.space.element_geometry(window).unwrap();
 
         // The positioner target is relative to the parent window.

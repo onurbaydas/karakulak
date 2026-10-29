@@ -1,15 +1,23 @@
 use smithay::{
     backend::input::{
         AbsolutePositionEvent, Axis, AxisSource, ButtonState, Event, InputBackend, InputEvent,
-        KeyboardKeyEvent, PointerAxisEvent, PointerButtonEvent,
+        KeyState, KeyboardKeyEvent, PointerAxisEvent, PointerButtonEvent, PointerMotionEvent,
     },
     input::{
-        keyboard::FilterResult,
+        keyboard::{FilterResult, keysyms},
         pointer::{AxisFrame, ButtonEvent, MotionEvent},
     },
     reexports::wayland_server::protocol::wl_surface::WlSurface,
-    utils::SERIAL_COUNTER,
+    utils::{Logical, Point, SERIAL_COUNTER},
 };
+
+/// Keys the compositor handles itself instead of passing to Firefox.
+enum Action {
+    /// Ctrl+Alt+F1..F12
+    SwitchVt(i32),
+    /// Ctrl+Alt+Backspace: leave, e.g. if something hangs during development.
+    Quit,
+}
 
 use crate::state::State;
 
@@ -20,16 +28,49 @@ impl State {
                 let serial = SERIAL_COUNTER.next_serial();
                 let time = Event::time(&event);
 
-                self.seat.get_keyboard().unwrap().input::<(), _>(
+                let action = self.seat.get_keyboard().unwrap().input::<Action, _>(
                     self,
                     event.key_code(),
                     event.state(),
                     serial,
                     time,
-                    |_, _, _| FilterResult::Forward,
+                    |_, modifiers, handle| {
+                        if event.state() != KeyState::Pressed {
+                            return FilterResult::Forward;
+                        }
+                        let sym = handle.modified_sym().raw();
+                        if (keysyms::KEY_XF86Switch_VT_1..=keysyms::KEY_XF86Switch_VT_12).contains(&sym) {
+                            return FilterResult::Intercept(Action::SwitchVt(
+                                (sym - keysyms::KEY_XF86Switch_VT_1 + 1) as i32,
+                            ));
+                        }
+                        if modifiers.ctrl && modifiers.alt && sym == keysyms::KEY_BackSpace {
+                            return FilterResult::Intercept(Action::Quit);
+                        }
+                        FilterResult::Forward
+                    },
                 );
+                match action {
+                    Some(Action::SwitchVt(vt)) => self.change_vt(vt),
+                    Some(Action::Quit) => self.loop_signal.stop(),
+                    None => {}
+                }
             }
-            InputEvent::PointerMotion { .. } => {}
+            InputEvent::PointerMotion { event, .. } => {
+                let pointer = self.seat.get_pointer().unwrap();
+                let pos = self.clamp_to_screens(pointer.current_location() + event.delta());
+                let under = self.surface_under(pos);
+                pointer.motion(
+                    self,
+                    under,
+                    &MotionEvent {
+                        location: pos,
+                        serial: SERIAL_COUNTER.next_serial(),
+                        time: event.time(),
+                    },
+                );
+                pointer.frame(self);
+            }
             InputEvent::PointerMotionAbsolute { event, .. } => {
                 let output = self.space.outputs().next().unwrap();
 
@@ -140,5 +181,22 @@ impl State {
             }
             _ => {}
         }
+    }
+}
+
+impl State {
+    /// Keeps the pointer on some screen.
+    fn clamp_to_screens(&self, pos: Point<f64, Logical>) -> Point<f64, Logical> {
+        let Some(bounds) = self
+            .space
+            .outputs()
+            .filter_map(|o| self.space.output_geometry(o))
+            .reduce(|a, b| a.merge(b))
+        else {
+            return pos;
+        };
+        let x = pos.x.clamp(bounds.loc.x as f64, (bounds.loc.x + bounds.size.w - 1) as f64);
+        let y = pos.y.clamp(bounds.loc.y as f64, (bounds.loc.y + bounds.size.h - 1) as f64);
+        (x, y).into()
     }
 }

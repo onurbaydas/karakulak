@@ -6,6 +6,7 @@ license = "GPL-3.0-only"
 description = "Karakulak's Wayland compositor: every screen shows a fullscreen Firefox"
 
 [dependencies]
+xcursor = "0.3.3"
 serde_json = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
@@ -15,7 +16,22 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 git = "https://github.com/Smithay/smithay"
 rev = "f581531"
 default-features = false
-features = ["backend_winit", "wayland_frontend", "desktop"]
+features = [
+    "backend_winit",
+    "backend_drm",
+    "backend_gbm",
+    "backend_libinput",
+    "backend_udev",
+    "backend_session_libseat",
+    "renderer_gl",
+    "renderer_multi",
+    "wayland_frontend",
+    "desktop",
+]
+
+[dependencies.smithay-drm-extras]
+git = "https://github.com/Smithay/smithay"
+rev = "f581531"
 
 [profile.release]
 strip = true
