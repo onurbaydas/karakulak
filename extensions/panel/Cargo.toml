@@ -1,0 +1,17 @@
+[package]
+name = "karakulak-panel"
+description = "Karakulak system panel: clock, battery and power"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+leptos.workspace = true
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+serde.workspace = true
+serde-wasm-bindgen.workspace = true
+karakulak-browser.workspace = true

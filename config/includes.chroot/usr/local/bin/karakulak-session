@@ -1,0 +1,12 @@
+#!/bin/sh
+# Prepare the Firefox profile, then run Firefox fullscreen inside cage.
+set -e
+
+PROFILE="$HOME/.karakulak/profile"
+
+if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
+	mkdir -p "$PROFILE/chrome"
+	cp /usr/share/karakulak/firefox/userChrome.css "$PROFILE/chrome/userChrome.css"
+fi
+
+exec cage -- firefox --profile "$PROFILE"

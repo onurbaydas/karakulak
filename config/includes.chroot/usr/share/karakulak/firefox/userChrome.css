@@ -1,0 +1,15 @@
+/* Tabs below the toolbar, acting as the taskbar. */
+#navigator-toolbox {
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+#TabsToolbar {
+	order: 2 !important;
+}
+
+/* No window controls: cage manages a single fullscreen window. */
+.titlebar-buttonbox-container,
+.titlebar-spacer {
+	display: none !important;
+}

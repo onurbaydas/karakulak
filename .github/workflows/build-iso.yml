@@ -1,0 +1,101 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - name: karakulakd
+        working-directory: daemon
+        run: |
+          cargo clippy --release
+          cargo test
+          cargo build --release
+      - name: Extensions
+        working-directory: extensions
+        run: cargo clippy --target wasm32-unknown-unknown --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: karakulakd
+          path: daemon/target/release/karakulakd
+
+  # Signs extensions whose version changed and commits the signed .xpi files.
+  sign:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sign
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: extensions/sign.sh
+
+      - name: Commit signed extensions
+        run: |
+          git add config/includes.chroot/usr/share/karakulak/extensions
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update signed extensions [skip ci]"
+          git push
+
+  iso:
+    needs: [test, sign]
+    if: ${{ !cancelled() && needs.test.result == 'success' }}
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Pick up the signed extensions the sign job may have just pushed.
+          ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulakd
+          path: config/includes.chroot/usr/bin
+
+      - name: Install live-build
+        run: |
+          chmod +x config/includes.chroot/usr/bin/karakulakd
+          apt-get update
+          apt-get install -y live-build
+
+      - name: Build ISO
+        run: |
+          lb config
+          lb build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: karakulak-iso
+          path: "*.iso"
+          if-no-files-found: error

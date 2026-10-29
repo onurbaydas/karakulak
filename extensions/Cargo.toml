@@ -1,0 +1,22 @@
+[workspace]
+members = ["browser", "welcome", "panel"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-only"
+
+[workspace.dependencies]
+leptos = { version = "0.8", features = ["csr"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+karakulak-browser = { path = "browser" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1

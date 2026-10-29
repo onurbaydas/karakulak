@@ -1,0 +1,11 @@
+[package]
+name = "karakulak-browser"
+description = "Small helpers for calling Firefox extension APIs from Rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+js-sys.workspace = true

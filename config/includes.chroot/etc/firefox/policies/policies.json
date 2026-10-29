@@ -1,0 +1,28 @@
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DontCheckDefaultBrowser": true,
+    "Preferences": {
+      "toolkit.legacyUserProfileCustomizations.stylesheets": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "browser.aboutwelcome.enabled": {
+        "Value": false,
+        "Status": "locked"
+      }
+    },
+    "ExtensionSettings": {
+      "welcome@karakulak": {
+        "installation_mode": "force_installed",
+        "install_url": "file:///usr/share/karakulak/extensions/welcome.xpi"
+      },
+      "panel@karakulak": {
+        "installation_mode": "force_installed",
+        "install_url": "file:///usr/share/karakulak/extensions/panel.xpi",
+        "default_area": "navbar"
+      }
+    }
+  }
+}

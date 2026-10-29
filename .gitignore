@@ -1,0 +1,29 @@
+# live-build output
+.build/
+cache/
+chroot/
+binary/
+*.iso
+*.contents
+*.files
+*.packages
+*.hybrid.iso.zsync
+build.log
+config/binary
+config/bootstrap
+config/chroot
+config/common
+config/source
+
+# graphify output
+graphify-out/
+
+# Rust
+daemon/target/
+
+# Built by CI
+config/includes.chroot/usr/bin/karakulakd
+
+# WebAssembly builds
+extensions/target/
+extensions/*/ext/pkg/

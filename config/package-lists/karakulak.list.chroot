@@ -1,0 +1,22 @@
+# Session
+cage
+firefox
+libpam-systemd
+dbus-user-session
+
+# Graphics and fonts
+libgl1-mesa-dri
+fonts-noto-core
+fonts-noto-color-emoji
+
+# Sound and Bluetooth
+pipewire-audio
+bluez
+
+# Network
+network-manager
+ca-certificates
+
+# Firmware
+firmware-linux-free
+firmware-misc-nonfree
