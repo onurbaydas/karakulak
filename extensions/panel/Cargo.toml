@@ -15,3 +15,6 @@ js-sys.workspace = true
 serde.workspace = true
 serde-wasm-bindgen.workspace = true
 karakulak-browser.workspace = true
+wasm-bindgen-futures.workspace = true
+vt100 = "0.18.1"
+base64 = "0.22"

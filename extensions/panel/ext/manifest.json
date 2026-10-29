@@ -1,18 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Karakulak Panel",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "System panel for Karakulak: clock, battery, sound, brightness, Wi-Fi, Bluetooth and power.",
   "browser_specific_settings": {
     "gecko": {
       "id": "panel@karakulak",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     }
   },
-  "permissions": ["nativeMessaging"],
+  "permissions": [
+    "nativeMessaging",
+    "clipboardRead",
+    "clipboardWrite"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },

@@ -6,6 +6,7 @@ mod audio;
 mod bluetooth;
 mod brightness;
 mod files;
+mod terminal;
 mod usb;
 mod wifi;
 
@@ -63,12 +64,19 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "usb-list" => usb::list(),
         "usb-mount" => usb::mount(arg("id")),
         "usb-eject" => usb::eject(arg("id")),
+        "term-open" => terminal::open(num(msg, "cols"), num(msg, "rows")),
+        "term-input" => terminal::input(num(msg, "term"), arg("data")),
+        "term-resize" => terminal::resize(num(msg, "term"), num(msg, "cols"), num(msg, "rows")),
         "bluetooth-pair" => bluetooth::pair(arg("path")),
         "lock" => brightness::compositor(json!({ "cmd": "lock" })).unwrap_or(Err("not in Karakulak's compositor".into())),
         "unlock" => brightness::compositor(json!({ "cmd": "unlock", "password": arg("password") }))
             .unwrap_or(Err("not in Karakulak's compositor".into())),
         cmd => Err(format!("unknown command: {cmd}")),
     }
+}
+
+fn num(msg: &Value, name: &str) -> u64 {
+    msg[name].as_u64().unwrap_or(0)
 }
 
 fn strings(value: &Value) -> Vec<String> {
@@ -114,15 +122,20 @@ fn read_trimmed(dir: &Path, name: &str) -> Option<String> {
         .map(|s| s.trim().to_string())
 }
 
+/// Sends one message to Firefox. Terminal threads use it too; the stdout lock
+/// keeps messages from interleaving.
+pub fn emit(msg: &Value) -> io::Result<()> {
+    write_message(&mut io::stdout().lock(), msg)
+}
+
 fn main() -> io::Result<()> {
     let mut input = io::stdin().lock();
-    let mut output = io::stdout().lock();
     while let Some(msg) = read_message(&mut input)? {
         let reply = match handle(&msg) {
             Ok(result) => json!({ "ok": true, "result": result }),
             Err(error) => json!({ "ok": false, "error": error }),
         };
-        write_message(&mut output, &reply)?;
+        emit(&reply)?;
     }
     Ok(())
 }
