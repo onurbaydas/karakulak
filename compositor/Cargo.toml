@@ -6,6 +6,7 @@ license = "GPL-3.0-only"
 description = "Karakulak's Wayland compositor: every screen shows a fullscreen Firefox"
 
 [dependencies]
+serde_json = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 

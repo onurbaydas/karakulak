@@ -6,6 +6,7 @@
 
 mod handlers;
 mod input;
+mod ipc;
 mod state;
 mod winit;
 
@@ -23,8 +24,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // is how it is developed and tested. Running on real screens comes next.
     winit::init_winit(&mut event_loop, &mut state)?;
 
-    // Child processes connect to us, not to the desktop we run inside.
-    unsafe { std::env::set_var("WAYLAND_DISPLAY", &state.socket_name) };
+    let control = ipc::init(&mut event_loop, &state.socket_name.to_string_lossy())?;
+
+    // Child processes connect to us, not to the desktop we run inside, and
+    // karakulakd finds our control socket.
+    unsafe {
+        std::env::set_var("WAYLAND_DISPLAY", &state.socket_name);
+        std::env::set_var("KARAKULAK_SOCKET", &control);
+    }
     spawn_session();
 
     event_loop.run(None, &mut state, |_| {})?;

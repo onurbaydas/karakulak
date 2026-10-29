@@ -1,9 +1,13 @@
-//! Screen brightness. Laptop panels through the kernel backlight (written via
-//! logind, no root needed); external monitors over DDC/CI.
+//! Screen brightness. Inside Karakulak's compositor it dims the picture, which
+//! works on every screen. Elsewhere (development in another desktop) it uses
+//! the laptop backlight (written via logind, no root needed) and DDC/CI for
+//! external monitors.
 
 use ddc_hi::{Ddc, Display};
 use serde_json::{json, Value};
 use std::fs;
+use std::io::{BufRead, BufReader, Write};
+use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use zbus::blocking::{Connection, Proxy};
 
@@ -29,9 +33,30 @@ fn backlight_level(dir: &Path) -> Result<f64, String> {
     Ok(f64::from(current) / f64::from(max.max(1)))
 }
 
+/// Asks the compositor, if we run inside it.
+fn compositor(request: Value) -> Option<Result<Value, String>> {
+    let path = std::env::var_os("KARAKULAK_SOCKET")?;
+    let result = (|| {
+        let mut stream = UnixStream::connect(path).map_err(|e| e.to_string())?;
+        writeln!(stream, "{request}").map_err(|e| e.to_string())?;
+        let mut line = String::new();
+        BufReader::new(stream).read_line(&mut line).map_err(|e| e.to_string())?;
+        let reply: Value = serde_json::from_str(&line).map_err(|e| e.to_string())?;
+        if reply["ok"] == true {
+            Ok(reply["result"].clone())
+        } else {
+            Err(reply["error"].as_str().unwrap_or("compositor error").to_string())
+        }
+    })();
+    Some(result)
+}
+
 /// Every screen whose brightness we can change:
 /// `[{"id", "name", "level": 0.0..=1.0}]`
 pub fn get() -> Result<Value, String> {
+    if let Some(result) = compositor(json!({ "cmd": "brightness" })) {
+        return result;
+    }
     let mut screens = Vec::new();
     if let Some(dir) = backlight() {
         let name = dir.file_name().unwrap_or_default().to_string_lossy().into_owned();
@@ -56,6 +81,9 @@ pub fn get() -> Result<Value, String> {
 }
 
 pub fn set(id: &str, level: f64) -> Result<Value, String> {
+    if let Some(result) = compositor(json!({ "cmd": "set-brightness", "id": id, "level": level })) {
+        return result;
+    }
     if let Some(name) = id.strip_prefix(BACKLIGHT_PREFIX) {
         set_backlight(name, level)?;
         return get();

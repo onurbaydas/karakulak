@@ -3,7 +3,7 @@ use std::time::Duration;
 use smithay::{
     backend::{
         renderer::{
-            damage::OutputDamageTracker, element::surface::WaylandSurfaceRenderElement, gles::GlesRenderer,
+            damage::OutputDamageTracker, element::solid::SolidColorRenderElement, gles::GlesRenderer,
         },
         winit::{self, WinitEvent},
     },
@@ -18,7 +18,7 @@ pub fn init_winit(
     event_loop: &mut EventLoop<State>,
     state: &mut State,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (mut backend, winit) = winit::init()?;
+    let (mut backend, winit) = winit::init::<GlesRenderer>()?;
     backend.window().set_title("Karakulak");
 
     let mode = Mode {
@@ -63,21 +63,17 @@ pub fn init_winit(
                 let size = backend.window_size();
                 let damage = Rectangle::from_size(size);
 
+                let dimmer: Vec<SolidColorRenderElement> = state.dimmer(&output).into_iter().collect();
                 {
                     let (renderer, mut framebuffer) = backend.bind().unwrap();
-                    smithay::desktop::space::render_output::<
-                        _,
-                        WaylandSurfaceRenderElement<GlesRenderer>,
-                        _,
-                        _,
-                    >(
+                    smithay::desktop::space::render_output::<_, SolidColorRenderElement, _, _>(
                         &output,
                         renderer,
                         &mut framebuffer,
                         1.0,
                         0,
                         [&state.space],
-                        &[],
+                        &dimmer,
                         &mut damage_tracker,
                         [0.1, 0.1, 0.1, 1.0],
                     )

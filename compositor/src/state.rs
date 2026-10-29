@@ -1,6 +1,8 @@
-use std::{ffi::OsString, sync::Arc};
+use std::{collections::HashMap, ffi::OsString, sync::Arc};
 
+use serde_json::{Value, json};
 use smithay::{
+    backend::renderer::element::{Kind, solid::{SolidColorBuffer, SolidColorRenderElement}},
     desktop::{PopupManager, Space, Window, WindowSurfaceType},
     input::{Seat, SeatState},
     reexports::{
@@ -40,7 +42,14 @@ pub struct State {
     pub popups: PopupManager,
 
     pub seat: Seat<Self>,
+
+    /// Software brightness per output name: a black layer drawn over the
+    /// screen. Works on every screen, unlike backlight or DDC/CI.
+    pub dimmers: HashMap<String, (f64, SolidColorBuffer)>,
 }
+
+/// Darkest allowed level: a black screen looks like a dead machine.
+const MIN_BRIGHTNESS: f64 = 0.1;
 
 impl State {
     pub fn new(event_loop: &mut EventLoop<Self>, display: Display<Self>) -> Self {
@@ -73,6 +82,7 @@ impl State {
             data_device_state,
             popups: PopupManager::default(),
             seat,
+            dimmers: HashMap::new(),
         }
     }
 
@@ -135,6 +145,49 @@ impl State {
 
         let keyboard = self.seat.get_keyboard().unwrap();
         keyboard.set_focus(self, Some(toplevel.wl_surface().clone()), SERIAL_COUNTER.next_serial());
+    }
+
+    /// `[{"id", "name", "level"}]` for every screen.
+    pub fn brightness_list(&self) -> Value {
+        let screens: Vec<Value> = self
+            .space
+            .outputs()
+            .map(|output| {
+                let props = output.physical_properties();
+                json!({
+                    "id": output.name(),
+                    "name": format!("{} {}", props.make, props.model),
+                    "level": self.dimmers.get(&output.name()).map_or(1.0, |(level, _)| *level),
+                })
+            })
+            .collect();
+        Value::Array(screens)
+    }
+
+    pub fn set_brightness(&mut self, id: &str, level: f64) {
+        let level = level.clamp(MIN_BRIGHTNESS, 1.0);
+        let entry = self
+            .dimmers
+            .entry(id.to_string())
+            .or_insert_with(|| (1.0, SolidColorBuffer::default()));
+        entry.0 = level;
+    }
+
+    /// The dimming layer for `output`, if it is dimmed at all.
+    pub fn dimmer(&mut self, output: &smithay::output::Output) -> Option<SolidColorRenderElement> {
+        let size = self.space.output_geometry(output)?.size;
+        let (level, buffer) = self.dimmers.get_mut(&output.name())?;
+        if *level >= 1.0 {
+            return None;
+        }
+        buffer.update(size, [0.0, 0.0, 0.0, (1.0 - *level) as f32]);
+        Some(SolidColorRenderElement::from_buffer(
+            buffer,
+            (0, 0),
+            output.current_scale().fractional_scale(),
+            1.0,
+            Kind::Unspecified,
+        ))
     }
 
     /// Refits every window after the screen changed size.

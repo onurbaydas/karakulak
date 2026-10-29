@@ -43,8 +43,10 @@ eklentiler ona komut gönderir.
     Sekmeler ekranlar arasında sürüklenebilir. Panel ana ekranda durur.
     Monitör takılınca orada yeni pencere açılır, çıkarılınca sekmeleri ana
     ekrana geçer.
-  - [ ] Parlaklık donanımın desteklemediği laptoplarda ekran yöneticisi
-    üzerinden kısılır
+  - [x] Temel: Firefox'u ekranı kaplayacak şekilde açar (şimdilik başka bir
+    masaüstünün içinde pencere olarak, `./dev.sh session`)
+  - [x] Parlaklık: ekran yöneticisi görüntüyü karartır, her ekranda çalışır
+  - [ ] Gerçek ekranlarda, masaüstü olmadan çalışma (DRM/KMS)
 
 Bitti sayılır: Panelden Wi-Fi'ye bağlanıp bilgisayarı kapatabiliyorsun. Uykudan
 dönünce şifre soruluyor. İki monitörde her ekranda ayrı Firefox açılıyor.
