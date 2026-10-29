@@ -30,6 +30,7 @@ struct Network {
     signal: u8,
     secure: bool,
     active: bool,
+    known: bool,
 }
 
 #[derive(Clone, Deserialize)]
@@ -204,31 +205,58 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
     let networks = RwSignal::new(Vec::<Network>::new());
     let selected = RwSignal::new(None::<String>);
     let password = RwSignal::new(String::new());
+    let connecting = RwSignal::new(None::<String>);
     let refresh = move || run::<Vec<Network>>("wifi-list", vec![], on_error, move |n| networks.set(n.unwrap_or_default()));
     refresh();
 
     let connect = move |ssid: String| {
-        let args = vec![("ssid", ssid.into()), ("password", password.get().into())];
+        let args = vec![("ssid", ssid.clone().into()), ("password", password.get().into())];
         password.set(String::new());
         selected.set(None);
-        run::<()>("wifi-connect", args, on_error, move |_| refresh());
+        connecting.set(Some(ssid));
+        run::<()>("wifi-connect", args, on_error, move |_| {
+            // NetworkManager connects in the background; give it a moment.
+            set_timeout(
+                move || {
+                    connecting.set(None);
+                    refresh();
+                },
+                Duration::from_secs(4),
+            );
+        });
     };
 
     view! {
         <details>
             <summary>"Wi-Fi"</summary>
             <ul class="list">
-                <For each=move || networks.get() key=|n| n.ssid.clone() let:network>
+                // Key on the state too, so a row redraws when it connects.
+                <For each=move || networks.get() key=|n| (n.ssid.clone(), n.active, n.known) let:network>
                     {
                         let ssid = network.ssid.clone();
                         let is_selected = {
                             let ssid = ssid.clone();
                             move || selected.get().as_deref() == Some(ssid.as_str())
                         };
+                        let status = {
+                            let ssid = ssid.clone();
+                            move || {
+                                if network.active {
+                                    "Bağlı ✓".to_string()
+                                } else if connecting.get().as_deref() == Some(ssid.as_str()) {
+                                    "Bağlanıyor…".to_string()
+                                } else {
+                                    format!("%{}{}", network.signal, if network.secure { " 🔒" } else { "" })
+                                }
+                            }
+                        };
                         let pick = {
                             let ssid = ssid.clone();
                             move |_| {
-                                if network.secure {
+                                if network.active {
+                                    return;
+                                }
+                                if network.secure && !network.known {
                                     selected.set(Some(ssid.clone()));
                                 } else {
                                     connect(ssid.clone());
@@ -238,8 +266,8 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
                         view! {
                             <li>
                                 <button class:active=network.active on:click=pick>
-                                    {network.ssid.clone()}
-                                    <small>{format!(" %{}{}", network.signal, if network.secure { " 🔒" } else { "" })}</small>
+                                    <span>{network.ssid.clone()}</span>
+                                    <small>{status}</small>
                                 </button>
                                 <Show when=is_selected>
                                     <form on:submit={
