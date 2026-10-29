@@ -105,6 +105,18 @@ Bitti sayılır: Terminal açmadan sistemi güncelleyip ayarlarını değiştire
 Bitti sayılır: ISO sanal makinede açılıyor ve otomatik test geçiyor; laptopta
 tuşlar, touchpad ve pil uyarısı çalışıyor.
 
+## v0.7 — Gizlilik ve donanım
+
+- [ ] Parlaklık önce donanımla, boşta ekran gerçekten kapanır (#1)
+- [ ] Uykuya geçmeden önce kesin kilit (#2)
+- [ ] Wi-Fi'de rastgele MAC adresi
+- [ ] WireGuard VPN: Ayarlar'dan dosya yükle, panelden aç/kapa
+- [ ] Ses cihazı seçimi, mikrofon seviyesi
+- [ ] Kesirli ölçek (%125, %150)
+- [ ] İngilizce arayüz (sistem diline göre)
+- [ ] Ekran büyüteci (Super+artı/eksi)
+- [ ] Bluetooth'ta kod isteyen cihazlar
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)
