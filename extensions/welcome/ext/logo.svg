@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Karakulak</title>
+  <!-- Ears: black backs with the long black tufts that give the caracal its name. -->
+  <path d="M118 262 L150 70 L236 196 Z" fill="#1d1a16" stroke="#c8955c" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M394 262 L362 70 L276 196 Z" fill="#1d1a16" stroke="#c8955c" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M150 74 C146 50 152 28 164 8 C158 30 158 50 162 72 Z" fill="#1d1a16" stroke="#c8955c" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M362 74 C366 50 360 28 348 8 C354 30 354 50 350 72 Z" fill="#1d1a16" stroke="#c8955c" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M140 246 L157 112 L218 200 Z" fill="#c8955c"/>
+  <path d="M372 246 L355 112 L294 200 Z" fill="#c8955c"/>
+  <!-- Head -->
+  <path d="M256 186 C330 186 400 222 408 290 C416 362 344 444 256 452 C168 444 96 362 104 290 C112 222 182 186 256 186 Z" fill="#c8955c"/>
+  <!-- Pale muzzle and chin -->
+  <path d="M256 330 C300 330 330 360 330 394 C330 428 296 446 256 446 C216 446 182 428 182 394 C182 360 212 330 256 330 Z" fill="#efe2cc"/>
+  <!-- Eyes, with the dark lines running down to the nose -->
+  <path d="M178 300 C196 280 224 280 238 300 C222 318 196 318 178 300 Z" fill="#c8813f"/>
+  <path d="M334 300 C316 280 288 280 274 300 C290 318 316 318 334 300 Z" fill="#c8813f"/>
+  <ellipse cx="210" cy="300" rx="6" ry="13" fill="#151310"/>
+  <ellipse cx="302" cy="300" rx="6" ry="13" fill="#151310"/>
+  <path d="M238 300 C244 316 246 334 248 350" stroke="#151310" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M274 300 C268 316 266 334 264 350" stroke="#151310" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- Nose and mouth -->
+  <path d="M240 352 L272 352 L256 372 Z" fill="#151310"/>
+  <path d="M256 372 L256 388 M256 388 C248 398 236 398 228 392 M256 388 C264 398 276 398 284 392" stroke="#151310" stroke-width="5" fill="none" stroke-linecap="round"/>
+</svg>

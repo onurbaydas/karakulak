@@ -72,9 +72,9 @@ Terminal sekmesinde komut çalıştırabiliyorsun.
 - [x] Pencere düzeni: bir ekranda birden fazla Firefox penceresi yan yana
   (Super+←/→ yarım ekran, Super+↑ tam ekran, Super+Shift+←/→ başka ekrana,
   Alt+Tab pencereler arası, sekme çubuğundan sürükleyip kenara bırakınca yapışma)
-- [ ] Yeni sekme sayfası: saat, sık kullanılanlar, Karakulak teması
-- [ ] Sekmelerin görev çubuğu gibi göründüğü tema, açık ve koyu
-- [ ] Açılış ekranı (Plymouth) ve logo
+- [x] Yeni sekme ve ana sayfa: saat, arama, en çok ziyaret edilen siteler
+- [x] Tema: Firefox'un çubukları altta, sekmeler görev çubuğu gibi, Karakulak renkleri
+- [x] Logo (docs/brand/logo.svg) ve açılış ekranı (Plymouth, disk şifresi ekranıyla)
 
 Bitti sayılır: Açılıştan masaüstüne kadar her ekran Karakulak'a ait görünüyor.
 

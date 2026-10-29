@@ -55,3 +55,9 @@ input:focus {
   min-height: 1.5em;
   color: var(--danger);
 }
+
+.logo {
+  display: block;
+  width: 6rem;
+  margin: 0 auto 1rem;
+}

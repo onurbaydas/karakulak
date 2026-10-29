@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/brand/logo.svg" width="160" alt="Karakulak logo"></p>
+
 # Karakulak
 
 **A Linux distribution where the browser is the operating system.**

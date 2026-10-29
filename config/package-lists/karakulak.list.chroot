@@ -1,3 +1,7 @@
+# Boot splash
+plymouth
+plymouth-themes
+
 # Session (karakulak-compositor and its libraries)
 firefox
 libseat1

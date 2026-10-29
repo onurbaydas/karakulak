@@ -112,6 +112,7 @@ fn Welcome() -> impl IntoView {
 
     view! {
         <main>
+            <img class="logo" src="logo.svg" alt="" />
             <h1>"Karakulak'a hoş geldin"</h1>
             <p>"Gizlilik seviyeni seç. Sonra istediğin zaman değiştirebilirsin."</p>
             <p class="en">"Welcome to Karakulak. Choose your privacy level."</p>

@@ -58,3 +58,9 @@ button[aria-pressed="true"] {
 button span {
   display: block;
 }
+
+.logo {
+  display: block;
+  width: 6rem;
+  margin: 0 auto 1rem;
+}

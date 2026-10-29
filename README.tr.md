@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/brand/logo.svg" width="160" alt="Karakulak logosu"></p>
+
 # Karakulak
 
 **Tarayıcının işletim sistemi olduğu bir Linux dağıtımı.**

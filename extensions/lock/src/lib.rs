@@ -98,6 +98,7 @@ fn Lock() -> impl IntoView {
 
     view! {
         <main>
+            <img class="logo" src="logo.svg" alt="" />
             <time>{move || time.get().0}</time>
             <p class="date">{move || time.get().1}</p>
             <form on:submit=submit>

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Boot splash: Debian's spinner animation and password dialog images with the
+# Karakulak logo as watermark.
+set -e
+
+theme=/usr/share/plymouth/themes/karakulak
+for image in /usr/share/plymouth/themes/spinner/*.png; do
+	name=$(basename "$image")
+	[ "$name" = watermark.png ] || cp "$image" "$theme/$name"
+done
+plymouth-set-default-theme karakulak
+update-initramfs -u
