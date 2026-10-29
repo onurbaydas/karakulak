@@ -8,7 +8,6 @@ binary/
 *.files
 *.packages
 *.hybrid.iso.zsync
-build.log
 config/binary
 config/bootstrap
 config/chroot

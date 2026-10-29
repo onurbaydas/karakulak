@@ -4,6 +4,7 @@ set -e
 lb config noauto \
 	--distribution trixie \
 	--archive-areas "main contrib non-free non-free-firmware" \
+	--debootstrap-options "--include=ca-certificates" \
 	--debian-installer live \
 	--debian-installer-gui false \
 	--iso-application "Karakulak" \

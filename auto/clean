@@ -3,4 +3,3 @@ set -e
 
 lb clean noauto "${@}"
 rm -f config/binary config/bootstrap config/chroot config/common config/source
-rm -f build.log
