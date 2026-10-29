@@ -4,6 +4,7 @@
 //!
 //! Usage: karakulak-compositor -- firefox --no-remote
 
+mod brightness;
 mod cursor;
 mod handlers;
 mod input;
@@ -55,6 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })?;
     }
     power::init(&mut event_loop);
+    brightness::init(&mut event_loop, &mut state);
     spawn_session();
 
     event_loop.run(None, &mut state, |state| {

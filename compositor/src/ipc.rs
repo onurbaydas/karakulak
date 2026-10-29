@@ -3,6 +3,7 @@
 //!
 //!   {"cmd": "brightness"}                          -> [{"id", "name", "level"}]
 //!   {"cmd": "set-brightness", "id": .., "level": ..} -> same list
+//!   {"cmd": "set-software-brightness", "id": .., "on": bool} -> same list
 //!   {"cmd": "screens"}                             -> [{"id", "name", "current", "scale", "modes"}]
 //!   {"cmd": "set-screen", "id", "width", "height", "refresh", "scale"} -> same list
 //!   {"cmd": "lock"}
@@ -84,6 +85,11 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
             return Ok(());
         }
         Some("brightness") => json!({ "ok": true, "result": state.brightness_list() }),
+        Some("set-software-brightness") => {
+            let id = request["id"].as_str().unwrap_or("");
+            state.set_software_brightness(id, request["on"].as_bool().unwrap_or(false));
+            json!({ "ok": true, "result": state.brightness_list() })
+        }
         Some("set-brightness") => {
             let id = request["id"].as_str().unwrap_or("");
             let level = request["level"].as_f64().unwrap_or(1.0);

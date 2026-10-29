@@ -45,7 +45,7 @@ use smithay::{
         },
         drm::{
             Device as _,
-            control::{ModeTypeFlags, connector, crtc},
+            control::{Device as _, ModeTypeFlags, connector, crtc},
         },
         input::Libinput,
         rustix::fs::OFlags,
@@ -571,9 +571,10 @@ impl State {
         else {
             return;
         };
-        if !self.udev.as_ref().unwrap().session.is_active() {
+        if !self.udev.as_ref().unwrap().session.is_active() || self.power.screens_off {
             return;
         }
+        self.apply_gamma(&output, node, crtc);
 
         let overlays = self.overlays(&output);
         let pointer_location = self.seat.get_pointer().unwrap().current_location();
@@ -742,6 +743,62 @@ impl State {
             .map_err(|e| e.to_string())?;
         output.change_current_state(Some(WlMode::from(mode)), None, None, None);
         Ok(())
+    }
+
+    /// Writes the GPU gamma table when software brightness or night light
+    /// changed. A GPU that refuses gets the black layer instead.
+    fn apply_gamma(&mut self, output: &Output, node: DrmNode, crtc: crtc::Handle) {
+        let wanted = self.software_state(output);
+        let Some(screen) = self.brightness.screens.get_mut(&output.name()) else {
+            return;
+        };
+        if !screen.gamma_works || screen.gamma_applied == Some(wanted) {
+            return;
+        }
+        let Some(device) = self.udev.as_ref().and_then(|u| u.backends.get(&node)) else {
+            return;
+        };
+        let drm = device.drm_output_manager.device();
+        let size = drm.get_crtc(crtc).map(|c| c.gamma_length() as usize).unwrap_or(0);
+        let [r, g, b] = crate::brightness::gamma_ramp(size, wanted.0, wanted.1);
+        match (size > 1).then(|| drm.set_gamma(crtc, &r, &g, &b)) {
+            Some(Ok(())) => screen.gamma_applied = Some(wanted),
+            failed => {
+                warn!("no gamma table on {} ({failed:?}), dimming with a layer", output.name());
+                screen.gamma_works = false;
+            }
+        }
+    }
+
+    /// Powers all screens off (DPMS) after a long idle time.
+    pub fn screens_off(&mut self) {
+        let Some(udev) = self.udev.as_mut() else { return };
+        for device in udev.backends.values_mut() {
+            for screen in device.screens.values_mut() {
+                if let Err(e) = screen.drm_output.with_compositor(|c| c.clear()) {
+                    warn!("could not turn {} off: {e}", screen.output.name());
+                }
+            }
+        }
+    }
+
+    /// Back on after input; the next frame re-enables each screen.
+    pub fn screens_on(&mut self) {
+        let Some(udev) = self.udev.as_mut() else { return };
+        let mut nodes = Vec::new();
+        for (node, device) in udev.backends.iter_mut() {
+            for screen in device.screens.values_mut() {
+                let _ = screen.drm_output.with_compositor(|c| c.reset_state());
+            }
+            nodes.push(*node);
+        }
+        // Gamma tables may have been reset with the screens.
+        for screen in self.brightness.screens.values_mut() {
+            screen.gamma_applied = None;
+        }
+        for node in nodes {
+            self.render_device(node);
+        }
     }
 
     /// Ctrl+Alt+F1..F12 switches to another virtual terminal.

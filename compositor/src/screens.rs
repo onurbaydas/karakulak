@@ -42,16 +42,36 @@ pub fn saved(output: &Output) -> (Option<Mode>, Option<i32>) {
     (mode, n("scale"))
 }
 
-fn save(output: &Output, mode: Mode, scale: i32) {
+/// Updates some fields of this monitor's saved settings.
+fn update(output: &Output, fields: Value) {
     let Some(path) = config_path() else {
         return;
     };
     let mut all = load();
-    all[key(output)] = json!({ "width": mode.0, "height": mode.1, "refresh": mode.2, "scale": scale });
+    let entry = &mut all[key(output)];
+    if !entry.is_object() {
+        *entry = json!({});
+    }
+    for (name, value) in fields.as_object().into_iter().flatten() {
+        entry[name] = value.clone();
+    }
     let _ = std::fs::create_dir_all(path.parent().unwrap());
     if let Err(e) = std::fs::write(&path, all.to_string()) {
         tracing::warn!("could not save screen settings: {e}");
     }
+}
+
+fn save(output: &Output, mode: Mode, scale: i32) {
+    update(output, json!({ "width": mode.0, "height": mode.1, "refresh": mode.2, "scale": scale }));
+}
+
+/// Settings forced software brightness for this monitor.
+pub fn software_brightness(output: &Output) -> bool {
+    load()[key(output)]["software_brightness"].as_bool().unwrap_or(false)
+}
+
+pub fn set_software_brightness(output: &Output, on: bool) {
+    update(output, json!({ "software_brightness": on }));
 }
 
 impl State {

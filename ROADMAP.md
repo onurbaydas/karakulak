@@ -107,7 +107,8 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 
 ## v0.7 — Gizlilik ve donanım
 
-- [ ] Parlaklık önce donanımla, boşta ekran gerçekten kapanır (#1)
+- [x] Parlaklık önce donanımla (ekran ışığı, DDC/CI), olmazsa gamma; boşta ekran
+  gerçekten kapanır (#1, gerçek donanımda denenecek)
 - [ ] Uykuya geçmeden önce kesin kilit (#2)
 - [ ] Wi-Fi'de rastgele MAC adresi
 - [ ] WireGuard VPN: Ayarlar'dan dosya yükle, panelden aç/kapa

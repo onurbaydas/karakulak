@@ -77,6 +77,11 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "term-input" => terminal::input(num(msg, "term"), arg("data")),
         "term-resize" => terminal::resize(num(msg, "term"), num(msg, "cols"), num(msg, "rows")),
         "bluetooth-pair" => bluetooth::pair(arg("path")),
+        "set-software-brightness" => {
+            let mut request = msg.clone();
+            request["cmd"] = json!("set-software-brightness");
+            brightness::compositor(request).unwrap_or(Err("not in Karakulak's compositor".into()))
+        }
         "night-light" => {
             let mut request = msg.clone();
             request["cmd"] = json!("night-light");

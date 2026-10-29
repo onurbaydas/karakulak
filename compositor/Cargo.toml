@@ -14,6 +14,7 @@ zbus = { version = "5", default-features = false, features = ["async-io", "block
 libc = "0.2"
 png = "0.17"
 dirs = "6"
+ddc-hi = { version = "0.4.1", default-features = false, features = ["ddc-i2c"] }
 
 # Pinned to the commit the code was written against; Smithay's API moves fast.
 [dependencies.smithay]

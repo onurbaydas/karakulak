@@ -105,6 +105,51 @@ const KEYBOARDS: [(&str, &str, &str); 6] = [
     ("fr", "", "Français"),
 ];
 #[derive(Clone, Deserialize)]
+struct ScreenBrightness {
+    id: String,
+    name: String,
+    method: String,
+    software: bool,
+}
+
+#[component]
+fn BrightnessSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let screens = RwSignal::new(Vec::<ScreenBrightness>::new());
+    let update = move |s: Option<Vec<ScreenBrightness>>| screens.set(s.unwrap_or_default());
+    run::<Vec<ScreenBrightness>>("brightness", vec![], on_error, update);
+    move || {
+        screens
+            .get()
+            .into_iter()
+            .map(|screen| {
+                let how = match screen.method.as_str() {
+                    "backlight" => "ekran ışığıyla",
+                    "ddc" => "monitörün kendisiyle (DDC/CI)",
+                    _ => "yazılımla",
+                };
+                let id = screen.id.clone();
+                let software = screen.software;
+                view! {
+                    <section class="card">
+                        <label>
+                            <span>{format!("{}: yazılımla karart", screen.name)} <small class="hint">{format!("Şu an {how} ayarlanıyor.")}</small></span>
+                            <input
+                                type="checkbox"
+                                prop:checked=software
+                                on:change={move |_| {
+                                    let args = vec![("id", id.clone().into()), ("on", (!software).into())];
+                                    run::<Vec<ScreenBrightness>>("set-software-brightness", args, on_error, update)
+                                }}
+                            />
+                        </label>
+                    </section>
+                }
+            })
+            .collect_view()
+    }
+}
+
+#[derive(Clone, Deserialize)]
 struct Night {
     mode: String,
 }
@@ -341,6 +386,8 @@ pub fn Settings() -> impl IntoView {
                     .map(|screen| view! { <ScreenSettings screen screens on_error=set_error /> })
                     .collect_view()
             }}
+            <BrightnessSettings on_error=set_error />
+            <p class="hint">"Parlaklık tuşları ekranı değiştirmiyorsa \"yazılımla karart\"ı aç."</p>
             <NightLight on_error=set_error />
             <h2 class="group">"Bölge ve dil"</h2>
             <RegionSettings on_error=set_error />

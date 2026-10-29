@@ -73,7 +73,7 @@ impl State {
             elements.push(SolidColorRenderElement::from_buffer(&osd.track, at(x, y), scale, 1.0, Kind::Unspecified));
         }
         elements.extend(self.dimmer(output));
-        if self.overlays.night_light {
+        if self.night_layer_needed(output) {
             let buffer = self.overlays.night.entry(output.name()).or_default();
             buffer.update(size, NIGHT_COLOR);
             elements.push(SolidColorRenderElement::from_buffer(buffer, (0, 0), scale, 1.0, Kind::Unspecified));
@@ -104,9 +104,9 @@ impl State {
     /// Brightness keys change the primary (built-in) screen.
     pub fn change_brightness(&mut self, step: f64) {
         let Some(output) = self.primary_output() else { return };
-        let current = self.dimmers.get(&output.name()).map_or(1.0, |(level, _)| *level);
+        let current = self.brightness_level(&output);
         self.set_brightness(&output.name(), current + step);
-        let level = self.dimmers.get(&output.name()).map_or(1.0, |(level, _)| *level);
+        let level = self.brightness_level(&output);
         self.show_osd(level, false);
     }
 }

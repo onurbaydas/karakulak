@@ -15,6 +15,7 @@ use crate::State;
 const TICK: Duration = Duration::from_secs(10);
 const DIM_AFTER: Duration = Duration::from_secs(5 * 60);
 const LOCK_AFTER: Duration = Duration::from_secs(10 * 60);
+const SCREENS_OFF_AFTER: Duration = Duration::from_secs(11 * 60);
 const IDLE_DIM_LEVEL: f64 = 0.3;
 const BATTERY_WARN: u8 = 10;
 const BATTERY_SUSPEND: u8 = 4;
@@ -33,6 +34,8 @@ pub struct Power {
     /// Surfaces (video players) asking the screen to stay on.
     inhibitors: Vec<WlSurface>,
     pub idle_dimmed: bool,
+    /// Screens powered off (DPMS) after a long idle time.
+    pub screens_off: bool,
     battery_warned_at: Option<Instant>,
     suspended_for_battery: bool,
     pub night_mode: NightMode,
@@ -78,6 +81,7 @@ impl Default for Power {
             last_input: Instant::now(),
             inhibitors: Vec::new(),
             idle_dimmed: false,
+            screens_off: false,
             battery_warned_at: None,
             suspended_for_battery: false,
             night_mode,
@@ -146,8 +150,10 @@ impl State {
     /// Any key or pointer movement.
     pub fn user_active(&mut self) {
         self.power.last_input = Instant::now();
-        if self.power.idle_dimmed {
-            self.power.idle_dimmed = false;
+        self.power.idle_dimmed = false;
+        if self.power.screens_off {
+            self.power.screens_off = false;
+            self.screens_on();
         }
     }
 
@@ -159,6 +165,10 @@ impl State {
                 self.lock();
             }
             self.power.idle_dimmed = idle >= DIM_AFTER;
+            if idle >= SCREENS_OFF_AFTER && !self.power.screens_off {
+                self.power.screens_off = true;
+                self.screens_off();
+            }
         } else {
             self.power.idle_dimmed = false;
         }
