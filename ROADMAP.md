@@ -90,16 +90,17 @@ Bitti sayılır: Terminal açmadan sistemi güncelleyip ayarlarını değiştire
 
 ## v0.6 — Günlük kullanım ve test
 
-- [ ] `./vm.sh`: ISO'yu tek komutla sanal makinede açar
+- [x] `./vm.sh`: ISO'yu tek komutla sanal makinede açar
 - [ ] GitHub'da her ISO için otomatik açılış testi (ekran görüntüsüyle)
-- [ ] Klavyedeki ses ve parlaklık tuşları
-- [ ] Touchpad: dokunarak tıklama, doğal kaydırma
-- [ ] Boşta kalınca ekran kararır, kapanır, kilitlenir
-- [ ] Pil azalınca uyarı, kritik seviyede uyku
-- [ ] Print Screen ile ekran görüntüsü (Resimler klasörüne)
-- [ ] Gece ışığı
-- [ ] Ses ve parlaklık değişince ekranda küçük gösterge
-- [ ] Önerilen eklentiler sayfası (uBlock Origin gibi, tek tıkla kurulur)
+- [x] Klavyedeki ses ve parlaklık tuşları
+- [x] Touchpad: dokunarak tıklama, doğal kaydırma
+- [x] Boşta kalınca ekran kararır ve kilitlenir (video oynarken değil); ekranı gerçekten
+  kapatmak (DPMS) sonra
+- [x] Pil azalınca uyarı, kritik seviyede uyku
+- [x] Print Screen ile ekran görüntüsü (Resimler klasörüne)
+- [x] Gece ışığı
+- [x] Ses ve parlaklık değişince ekranda küçük gösterge
+- [x] Önerilen eklentiler sayfası (uBlock Origin gibi, tek tıkla kurulur)
 
 Bitti sayılır: ISO sanal makinede açılıyor ve otomatik test geçiyor; laptopta
 tuşlar, touchpad ve pil uyarısı çalışıyor.

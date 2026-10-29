@@ -11,8 +11,11 @@ mod ipc;
 mod keyboard;
 mod layout;
 mod lock;
+mod overlay;
 mod pam;
+mod power;
 mod screens;
+mod screenshot;
 mod state;
 mod udev;
 mod winit;
@@ -51,6 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         })?;
     }
+    power::init(&mut event_loop);
     spawn_session();
 
     event_loop.run(None, &mut state, |state| {

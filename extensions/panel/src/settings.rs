@@ -104,6 +104,22 @@ const KEYBOARDS: [(&str, &str, &str); 6] = [
     ("de", "", "Deutsch"),
     ("fr", "", "Français"),
 ];
+#[derive(Clone, Deserialize)]
+struct Night {
+    mode: String,
+}
+
+const NIGHT: [(&str, &str); 3] = [("off", "Kapalı"), ("evening", "Akşamları (20:00 - 07:00)"), ("on", "Her zaman")];
+
+/// Recommended extensions: privacy-respecting, from addons.mozilla.org.
+const EXTENSIONS: [(&str, &str, &str); 5] = [
+    ("uBlock Origin", "Reklam ve izleyici engelleyici", "https://addons.mozilla.org/firefox/addon/ublock-origin/"),
+    ("Bitwarden", "Açık kaynak şifre yöneticisi", "https://addons.mozilla.org/firefox/addon/bitwarden-password-manager/"),
+    ("Firefox Multi-Account Containers", "Siteleri birbirinden ayrı kutularda aç", "https://addons.mozilla.org/firefox/addon/multi-account-containers/"),
+    ("Dark Reader", "Her siteyi koyu temada göster", "https://addons.mozilla.org/firefox/addon/darkreader/"),
+    ("SponsorBlock", "YouTube videolarındaki sponsor kısımlarını atla", "https://addons.mozilla.org/firefox/addon/sponsorblock/"),
+];
+
 const PRIVACY: [(&str, &str); 3] = [("standard", "Standart"), ("strict", "Sıkı"), ("paranoid", "Paranoyak")];
 
 #[component]
@@ -265,6 +281,49 @@ fn SystemSettings(on_error: WriteSignal<String>) -> impl IntoView {
 }
 
 #[component]
+fn NightLight(on_error: WriteSignal<String>) -> impl IntoView {
+    let mode = RwSignal::new(None::<String>);
+    run::<Night>("night-light", vec![], on_error, move |n| mode.set(n.map(|n| n.mode)));
+    view! {
+        <section class="card">
+            <label>
+                "Gece ışığı"
+                <select on:change=move |ev| {
+                    let args = vec![("mode", event_target_value(&ev).into())];
+                    run::<Night>("night-light", args, on_error, move |n| mode.set(n.map(|n| n.mode)));
+                }>
+                    {NIGHT.map(|(code, name)| {
+                        view! { <option value=code selected=move || mode.get().as_deref() == Some(code)>{name}</option> }
+                    })}
+                </select>
+            </label>
+            <p class="hint">"Ekranı sarıya kaydırır, akşamları gözü daha az yorar."</p>
+        </section>
+    }
+}
+
+#[component]
+fn Extensions() -> impl IntoView {
+    view! {
+        <section class="card">
+            {EXTENSIONS.map(|(name, about, url)| {
+                view! {
+                    <label>
+                        <span>{name} <small class="hint">{about}</small></span>
+                        <button on:click=move |_| {
+                            spawn_local(async move {
+                                let _ = call("tabs.create", &[object(&[("url", url.into())])]).await;
+                            });
+                        }>"Firefox'a ekle"</button>
+                    </label>
+                }
+            })}
+            <p class="hint">"Mozilla'nın eklenti mağazasında açılır, kurmak için orada \"Firefox'a ekle\"ye bas."</p>
+        </section>
+    }
+}
+
+#[component]
 pub fn Settings() -> impl IntoView {
     let (error, set_error) = signal(String::new());
     let screens = RwSignal::new(Vec::<Screen>::new());
@@ -282,12 +341,15 @@ pub fn Settings() -> impl IntoView {
                     .map(|screen| view! { <ScreenSettings screen screens on_error=set_error /> })
                     .collect_view()
             }}
+            <NightLight on_error=set_error />
             <h2 class="group">"Bölge ve dil"</h2>
             <RegionSettings on_error=set_error />
             <h2 class="group">"Gizlilik"</h2>
             <PrivacySettings on_error=set_error />
             <h2 class="group">"Sistem"</h2>
             <SystemSettings on_error=set_error />
+            <h2 class="group">"Önerilen eklentiler"</h2>
+            <Extensions />
         </main>
     }
 }

@@ -201,10 +201,10 @@ pub fn init_udev(event_loop: &mut EventLoop<State>, state: &mut State) -> Result
         .map_err(|()| "libinput could not use the seat")?;
     event_loop
         .handle()
-        .insert_source(LibinputInputBackend::new(libinput.clone()), |event, _, state| {
-            if !matches!(event, InputEvent::DeviceAdded { .. } | InputEvent::DeviceRemoved { .. }) {
-                state.process_input_event(event);
-            }
+        .insert_source(LibinputInputBackend::new(libinput.clone()), |event, _, state| match event {
+            InputEvent::DeviceAdded { mut device } => configure_touchpad(&mut device),
+            InputEvent::DeviceRemoved { .. } => {}
+            event => state.process_input_event(event),
         })?;
 
     // Switching to another VT pauses us; coming back resumes.
@@ -304,8 +304,14 @@ impl State {
         let render_node = (|| {
             let display = unsafe { EGLDisplay::new(gbm.clone()) }.ok()?;
             let egl_device = EGLDevice::device_for_display(&display).ok()?;
+            // Software rendering (no GPU driver, e.g. a plain virtual machine)
+            // is slow but better than a black screen; skip it only if a real
+            // GPU is there to render for this device.
             if egl_device.is_software() {
-                return None;
+                if udev.backends.values().any(|d| d.render_node.is_some()) {
+                    return None;
+                }
+                warn!("no GPU acceleration on {node}, drawing in software");
             }
             let render_node = egl_device.try_get_render_node().ok().flatten().unwrap_or(node);
             udev.gpus.as_mut().add_node(render_node, gbm.clone()).ok()?;
@@ -569,7 +575,7 @@ impl State {
             return;
         }
 
-        let dimmer = self.dimmer(&output);
+        let overlays = self.overlays(&output);
         let pointer_location = self.seat.get_pointer().unwrap().current_location();
         let cursor_status = self.cursor_status.clone();
         let elapsed = self.start_time.elapsed();
@@ -629,10 +635,18 @@ impl State {
                     .render_elements::<ScreenElements<'_>>(&mut renderer, position, scale, 1.0),
             );
         }
-        elements.extend(dimmer.map(OutputElements::Dimmer));
+        elements.extend(overlays.into_iter().map(OutputElements::Dimmer));
         match self.space.render_elements_for_output(&mut renderer, &output, 1.0) {
             Ok(space) => elements.extend(space.into_iter().map(OutputElements::Space)),
             Err(e) => warn!("could not render windows: {e:?}"),
+        }
+
+        if self.screenshots_pending.contains(&output.name()) {
+            self.screenshots_pending.retain(|n| *n != output.name());
+            match crate::screenshot::save(&mut renderer, &output, &elements) {
+                Ok(path) => info!("screenshot saved: {}", path.display()),
+                Err(e) => warn!("screenshot failed: {e}"),
+            }
         }
 
         let rendered = screen
@@ -753,4 +767,14 @@ impl State {
 fn same_mode(mode: &smithay::reexports::drm::control::Mode, wanted: crate::screens::Mode) -> bool {
     let wl = WlMode::from(*mode);
     (wl.size.w, wl.size.h, wl.refresh) == wanted
+}
+
+/// Laptop touchpads: tap to click, natural scrolling, ignored while typing.
+fn configure_touchpad(device: &mut smithay::reexports::input::Device) {
+    if device.config_tap_finger_count() == 0 {
+        return;
+    }
+    let _ = device.config_tap_set_enabled(true);
+    let _ = device.config_scroll_set_natural_scroll_enabled(true);
+    let _ = device.config_dwt_set_enabled(true);
 }

@@ -50,14 +50,17 @@ pub fn app_id(window: &Window) -> Option<String> {
     })
 }
 
-/// Sets up locking if a lock command is configured; locks right away.
+/// Sets up locking if a lock command is configured; locks right away unless
+/// KARAKULAK_LOCK_AT_START=0 (the live system, where nobody knows a password).
 pub fn init(state: &mut State) -> Option<Channel<LockEvent>> {
     std::env::var_os("KARAKULAK_LOCK_COMMAND")?;
     let (sender, channel) = channel::channel();
     state.lock.sender = Some(sender.clone());
     watch_sleep(sender);
     spawn_lock_window();
-    state.lock();
+    if std::env::var("KARAKULAK_LOCK_AT_START").as_deref() != Ok("0") {
+        state.lock();
+    }
     Some(channel)
 }
 

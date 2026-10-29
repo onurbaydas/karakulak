@@ -16,6 +16,11 @@ fi
 mkdir -p "$LOCK_PROFILE"
 printf 'user_pref("extensions.webextensions.uuids", "{\\"lock@karakulak\\":\\"%s\\"}");\n' "$LOCK_UUID" \
 	> "$LOCK_PROFILE/user.js"
+# The live system logs in by itself and its password is not known; lock only
+# on request and before sleep there.
+if [ -d /run/live ]; then
+	export KARAKULAK_LOCK_AT_START=0
+fi
 export KARAKULAK_LOCK_COMMAND="firefox --kiosk --no-remote --name karakulak-lock --profile $LOCK_PROFILE moz-extension://$LOCK_UUID/lock.html"
 
 export XCURSOR_THEME=DMZ-White

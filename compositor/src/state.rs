@@ -56,6 +56,11 @@ pub struct State {
     /// Software brightness per output name: a black layer drawn over the
     /// screen. Works on every screen, unlike backlight or DDC/CI.
     pub dimmers: HashMap<String, (f64, SolidColorBuffer)>,
+    pub overlays: crate::overlay::Overlays,
+    pub power: crate::power::Power,
+    /// Screens still to be saved for a Print Screen.
+    pub screenshots_pending: Vec<String>,
+    pub idle_inhibit_state: smithay::wayland::idle_inhibit::IdleInhibitManagerState,
 }
 
 /// Darkest allowed level: a black screen looks like a dead machine.
@@ -84,6 +89,7 @@ impl State {
             .unwrap();
         seat.add_pointer();
 
+        let idle_inhibit_state = smithay::wayland::idle_inhibit::IdleInhibitManagerState::new::<Self>(&dh);
         let socket_name = Self::init_wayland_listener(display, event_loop);
 
         Self {
@@ -107,6 +113,10 @@ impl State {
             popups: PopupManager::default(),
             seat,
             dimmers: HashMap::new(),
+            overlays: Default::default(),
+            power: Default::default(),
+            screenshots_pending: Vec::new(),
+            idle_inhibit_state,
         }
     }
 
@@ -175,13 +185,18 @@ impl State {
     }
 
     /// The dimming layer for `output`, if it is dimmed at all.
-    pub fn dimmer(&mut self, output: &Output) -> Option<SolidColorRenderElement> {
+    pub(crate) fn dimmer(&mut self, output: &Output) -> Option<SolidColorRenderElement> {
         let size = self.space.output_geometry(output)?.size;
-        let (level, buffer) = self.dimmers.get_mut(&output.name())?;
-        if *level >= 1.0 {
+        let idle = self.idle_factor();
+        let (level, buffer) = self
+            .dimmers
+            .entry(output.name())
+            .or_insert_with(|| (1.0, SolidColorBuffer::default()));
+        let level = *level * idle;
+        if level >= 1.0 {
             return None;
         }
-        buffer.update(size, [0.0, 0.0, 0.0, (1.0 - *level) as f32]);
+        buffer.update(size, [0.0, 0.0, 0.0, (1.0 - level) as f32]);
         Some(SolidColorRenderElement::from_buffer(
             buffer,
             (0, 0),

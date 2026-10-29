@@ -63,7 +63,7 @@ pub fn init_winit(
                 let size = backend.window_size();
                 let damage = Rectangle::from_size(size);
 
-                let dimmer: Vec<SolidColorRenderElement> = state.dimmer(&output).into_iter().collect();
+                let dimmer: Vec<SolidColorRenderElement> = state.overlays(&output);
                 {
                     let (renderer, mut framebuffer) = backend.bind().unwrap();
                     smithay::desktop::space::render_output::<_, SolidColorRenderElement, _, _>(
@@ -80,6 +80,19 @@ pub fn init_winit(
                     .unwrap();
                 }
                 backend.submit(Some(&[damage])).unwrap();
+
+                if state.screenshot_wanted(&output) {
+                    let renderer = backend.renderer();
+                    let saved = state
+                        .space
+                        .render_elements_for_output(renderer, &output, 1.0)
+                        .map_err(|e| format!("{e:?}"))
+                        .and_then(|elements| crate::screenshot::save(renderer, &output, &elements));
+                    match saved {
+                        Ok(path) => tracing::info!("screenshot saved: {}", path.display()),
+                        Err(e) => tracing::warn!("screenshot failed: {e}"),
+                    }
+                }
 
                 state.space.elements().for_each(|window| {
                     window.send_frame(

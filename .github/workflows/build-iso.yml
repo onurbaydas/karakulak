@@ -134,3 +134,25 @@ jobs:
           name: karakulak-iso
           path: "*.iso"
           if-no-files-found: error
+
+  # Boots the ISO and checks that the session comes up.
+  boot:
+    needs: iso
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulak-iso
+      - name: Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 xorriso socat
+          sudo chmod 666 /dev/kvm || true
+      - name: Boot test
+        run: tests/boot-test.sh *.iso boot-test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boot-test
+          path: boot-test

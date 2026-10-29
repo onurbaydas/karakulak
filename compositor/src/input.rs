@@ -13,6 +13,10 @@ use smithay::{
 
 /// Keys the compositor handles itself instead of passing to Firefox.
 enum Action {
+    /// Volume up/down by percent, or `None` to mute.
+    Volume(Option<i32>),
+    Brightness(f64),
+    Screenshot,
     Tile(Slot),
     MoveToScreen(i32),
     NextWindow,
@@ -26,6 +30,7 @@ use crate::{layout::Slot, state::State};
 
 impl State {
     pub fn process_input_event<I: InputBackend>(&mut self, event: InputEvent<I>) {
+        self.user_active();
         match event {
             InputEvent::Keyboard { event, .. } => {
                 let serial = SERIAL_COUNTER.next_serial();
@@ -50,6 +55,18 @@ impl State {
                         if modifiers.ctrl && modifiers.alt && sym == keysyms::KEY_BackSpace {
                             return FilterResult::Intercept(Action::Quit);
                         }
+                        let media = match sym {
+                            keysyms::KEY_XF86AudioRaiseVolume => Some(Action::Volume(Some(5))),
+                            keysyms::KEY_XF86AudioLowerVolume => Some(Action::Volume(Some(-5))),
+                            keysyms::KEY_XF86AudioMute => Some(Action::Volume(None)),
+                            keysyms::KEY_XF86MonBrightnessUp => Some(Action::Brightness(0.1)),
+                            keysyms::KEY_XF86MonBrightnessDown => Some(Action::Brightness(-0.1)),
+                            keysyms::KEY_Print => Some(Action::Screenshot),
+                            _ => None,
+                        };
+                        if let Some(action) = media {
+                            return FilterResult::Intercept(action);
+                        }
                         if modifiers.alt && !modifiers.ctrl && sym == keysyms::KEY_Tab {
                             return FilterResult::Intercept(Action::NextWindow);
                         }
@@ -72,6 +89,9 @@ impl State {
                 match action {
                     Some(Action::SwitchVt(vt)) => self.change_vt(vt),
                     Some(Action::Quit) => self.loop_signal.stop(),
+                    Some(Action::Volume(step)) => self.change_volume(step),
+                    Some(Action::Brightness(step)) => self.change_brightness(step),
+                    Some(Action::Screenshot) => self.request_screenshot(),
                     Some(Action::Tile(slot)) => self.tile_focused(slot),
                     Some(Action::MoveToScreen(step)) => self.move_focused_to_screen(step),
                     Some(Action::NextWindow) => self.cycle_windows(),

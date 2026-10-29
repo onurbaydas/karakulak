@@ -47,6 +47,19 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
     let request: Value = serde_json::from_str(&line).unwrap_or(Value::Null);
 
     let reply = match request["cmd"].as_str() {
+        Some("screenshot") => {
+            state.request_screenshot();
+            json!({ "ok": true, "result": null })
+        }
+        Some("night-light") => {
+            use crate::power::NightMode;
+            if let Some(mode) = request["mode"].as_str().and_then(NightMode::from_name) {
+                state.power.night_mode = mode;
+                mode.save();
+                state.overlays.night_light = mode == NightMode::On;
+            }
+            json!({ "ok": true, "result": { "mode": state.power.night_mode.name() } })
+        }
         Some("reload-keyboard") => {
             state.reload_keyboard();
             json!({ "ok": true, "result": null })
