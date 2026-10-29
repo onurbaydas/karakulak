@@ -10,6 +10,7 @@ mod input;
 mod ipc;
 mod lock;
 mod pam;
+mod screens;
 mod state;
 mod udev;
 mod winit;

@@ -3,6 +3,8 @@
 //!
 //!   {"cmd": "brightness"}                          -> [{"id", "name", "level"}]
 //!   {"cmd": "set-brightness", "id": .., "level": ..} -> same list
+//!   {"cmd": "screens"}                             -> [{"id", "name", "current", "scale", "modes"}]
+//!   {"cmd": "set-screen", "id", "width", "height", "refresh", "scale"} -> same list
 //!   {"cmd": "lock"}
 //!   {"cmd": "unlock", "password": ..}              -> error if wrong
 
@@ -45,6 +47,15 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
     let request: Value = serde_json::from_str(&line).unwrap_or(Value::Null);
 
     let reply = match request["cmd"].as_str() {
+        Some("screens") => json!({ "ok": true, "result": state.screens_list() }),
+        Some("set-screen") => {
+            let n = |name: &str| request[name].as_i64().unwrap_or(0) as i32;
+            let mode = (n("width"), n("height"), n("refresh"));
+            match state.set_screen(request["id"].as_str().unwrap_or(""), mode, n("scale").max(1)) {
+                Ok(()) => json!({ "ok": true, "result": state.screens_list() }),
+                Err(e) => json!({ "ok": false, "error": e }),
+            }
+        }
         Some("lock") => {
             state.lock();
             json!({ "ok": true, "result": null })

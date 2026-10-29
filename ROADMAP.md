@@ -59,8 +59,10 @@ Hepsi önce kendi bilgisayarımızdaki Firefox'ta denenir, sonra ISO'ya girer.
   yeni klasör, yeniden adlandır, kopyala, taşı, çöpe at
 - [x] USB bellek takınca görünsün, tıklayınca bağlansın, "Çıkar" ile güvenle çıksın
 - [x] İndirilenler klasörü solda hazır
-- [ ] Terminal eklentisi: bir sekmede açılan terminal (xterm.js, komutları `karakulakd` çalıştırır)
-- [ ] Monitör ayarları: çözünürlük, ikinci ekran
+- [x] Terminal (paneldeki "Terminal"): kabuk `karakulakd`'de gerçek bir PTY'de çalışır,
+  ekranı `vt100` (Rust, WebAssembly) çizer; renkler, imleç, Ctrl+Shift+C/V
+- [x] Monitör ayarları (paneldeki "Ayarlar"): çözünürlük ve ölçek, monitör başına
+  hatırlanır
 
 Bitti sayılır: USB'den bir dosyayı ev klasörüne kopyalayıp Firefox'ta açabiliyorsun.
 Terminal sekmesinde komut çalıştırabiliyorsun.

@@ -4,6 +4,7 @@
 use std::time::Duration;
 
 mod files;
+mod settings;
 mod terminal;
 
 use karakulak_browser::{call, object};
@@ -474,6 +475,11 @@ fn Panel() -> impl IntoView {
                     let _ = call("tabs.create", &[object(&[("url", "terminal.html".into())])]).await;
                 });
             }}>"Terminal"</button>
+            <button on:click={move |_| {
+                spawn_local(async move {
+                    let _ = call("tabs.create", &[object(&[("url", "settings.html".into())])]).await;
+                });
+            }}>"Ayarlar"</button>
             <button on:click={move |_| run::<()>("lock", vec![], set_error, |_| {})}>"Kilitle"</button>
             <PowerButton label="Uyku" cmd="suspend" on_error=set_error />
             <PowerButton label="Yeniden başlat" cmd="reboot" on_error=set_error />
@@ -489,6 +495,8 @@ pub fn start() {
     let path = window().location().pathname().unwrap_or_default();
     if path.ends_with("/files.html") {
         mount_to_body(files::Files);
+    } else if path.ends_with("/settings.html") {
+        mount_to_body(settings::Settings);
     } else if path.ends_with("/terminal.html") {
         mount_to_body(terminal::Terminal);
     } else {

@@ -129,6 +129,7 @@ struct Screen {
     output: Output,
     global: Option<GlobalId>,
     drm_output: DrmOutput<Allocator, Exporter, (), DrmDeviceFd>,
+    modes: Vec<smithay::reexports::drm::control::Mode>,
 }
 
 impl Drop for Screen {
@@ -422,16 +423,6 @@ impl State {
         let model = info.as_ref().and_then(|i| i.model()).unwrap_or_else(|| "Unknown".into());
         let serial_number = info.as_ref().and_then(|i| i.serial()).unwrap_or_else(|| "Unknown".into());
 
-        let Some(drm_mode) = connector
-            .modes()
-            .iter()
-            .find(|mode| mode.mode_type().contains(ModeTypeFlags::PREFERRED))
-            .or_else(|| connector.modes().first())
-            .copied()
-        else {
-            return;
-        };
-        let wl_mode = WlMode::from(drm_mode);
         let (phys_w, phys_h) = connector.size().unwrap_or((0, 0));
         let output = Output::new(
             name.clone(),
@@ -443,9 +434,25 @@ impl State {
                 serial_number,
             },
         );
+        // The saved resolution if the monitor still offers it, else its preferred one.
+        let (saved_mode, saved_scale) = crate::screens::saved(&output);
+        let preferred = connector
+            .modes()
+            .iter()
+            .find(|mode| mode.mode_type().contains(ModeTypeFlags::PREFERRED))
+            .or_else(|| connector.modes().first())
+            .copied();
+        let Some(preferred) = preferred else {
+            return;
+        };
+        let drm_mode = saved_mode
+            .and_then(|wanted| connector.modes().iter().find(|m| same_mode(m, wanted)).copied())
+            .unwrap_or(preferred);
+        let wl_mode = WlMode::from(drm_mode);
         let global = output.create_global::<State>(&self.display_handle);
-        output.set_preferred(wl_mode);
-        output.change_current_state(Some(wl_mode), None, None, None);
+        output.set_preferred(WlMode::from(preferred));
+        let scale = saved_scale.map(|s| smithay::output::Scale::Integer(s.clamp(1, 3)));
+        output.change_current_state(Some(wl_mode), None, scale, None);
         output.user_data().insert_if_missing(|| OutputId { node, crtc });
 
         // Overlay planes misbehave on NVIDIA's driver.
@@ -485,6 +492,7 @@ impl State {
                 output: output.clone(),
                 global: Some(global),
                 drm_output,
+                modes: connector.modes().to_vec(),
             },
         );
         // Placed for now; layout_outputs() arranges all screens afterwards.
@@ -504,12 +512,13 @@ impl State {
     }
 
     /// Screens side by side, built-in screen first; then refit windows.
-    fn layout_outputs(&mut self) {
+    pub fn layout_outputs(&mut self) {
         let mut outputs: Vec<Output> = self.space.outputs().cloned().collect();
         outputs.sort_by_key(|o| (!o.name().starts_with("eDP"), o.name()));
         let mut x = 0;
         for output in outputs {
-            let width = output.current_mode().map_or(0, |m| m.size.w);
+            let scale = output.current_scale().integer_scale();
+            let width = output.current_mode().map_or(0, |m| m.size.to_logical(scale).w);
             output.change_current_state(None, None, None, Some((x, 0).into()));
             self.space.map_output(&output, (x, 0));
             x += width;
@@ -664,6 +673,63 @@ impl State {
         }
     }
 
+    fn screen_for(&self, output: &Output) -> Option<(DrmNode, crtc::Handle)> {
+        let id = *output.user_data().get::<OutputId>()?;
+        Some((id.node, id.crtc))
+    }
+
+    pub fn udev_modes(&self, output: &Output) -> Vec<crate::screens::Mode> {
+        let Some(id) = output.user_data().get::<OutputId>() else {
+            return Vec::new();
+        };
+        let Some(screen) = self
+            .udev
+            .as_ref()
+            .and_then(|u| u.backends.get(&id.node))
+            .and_then(|d| d.screens.get(&id.crtc))
+        else {
+            return Vec::new();
+        };
+        let mut modes: Vec<crate::screens::Mode> = screen
+            .modes
+            .iter()
+            .map(|m| {
+                let wl = WlMode::from(*m);
+                (wl.size.w, wl.size.h, wl.refresh)
+            })
+            .collect();
+        modes.dedup();
+        modes
+    }
+
+    pub fn udev_change_mode(&mut self, output: &Output, wanted: crate::screens::Mode) -> Result<(), String> {
+        let (node, crtc) = self.screen_for(output).ok_or("not a real screen")?;
+        let udev = self.udev.as_mut().unwrap();
+        let primary_gpu = udev.primary_gpu;
+        let device = udev.backends.get_mut(&node).ok_or("GPU gone")?;
+        let render_node = device.render_node.unwrap_or(primary_gpu);
+        let screen = device.screens.get_mut(&crtc).ok_or("screen gone")?;
+        let mode = screen
+            .modes
+            .iter()
+            .find(|m| same_mode(m, wanted))
+            .copied()
+            .ok_or("the monitor does not offer that resolution")?;
+        let mut renderer = if render_node == primary_gpu {
+            udev.gpus.single_renderer(&render_node)
+        } else {
+            let format = screen.drm_output.format();
+            udev.gpus.renderer(&primary_gpu, &render_node, format)
+        }
+        .map_err(|e| e.to_string())?;
+        screen
+            .drm_output
+            .use_mode::<_, ScreenElements<'_>>(mode, &mut renderer, &DrmOutputRenderElements::default())
+            .map_err(|e| e.to_string())?;
+        output.change_current_state(Some(WlMode::from(mode)), None, None, None);
+        Ok(())
+    }
+
     /// Ctrl+Alt+F1..F12 switches to another virtual terminal.
     pub fn change_vt(&mut self, vt: i32) {
         if let Some(udev) = self.udev.as_mut()
@@ -682,4 +748,9 @@ impl State {
             tracing::debug!("early import failed: {e}");
         }
     }
+}
+
+fn same_mode(mode: &smithay::reexports::drm::control::Mode, wanted: crate::screens::Mode) -> bool {
+    let wl = WlMode::from(*mode);
+    (wl.size.w, wl.size.h, wl.refresh) == wanted
 }
