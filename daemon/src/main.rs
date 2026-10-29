@@ -5,6 +5,7 @@
 mod audio;
 mod bluetooth;
 mod brightness;
+mod files;
 mod wifi;
 
 use serde_json::{json, Value};
@@ -50,12 +51,29 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "bluetooth-connect" => bluetooth::set_connected(arg("path"), true),
         "bluetooth-disconnect" => bluetooth::set_connected(arg("path"), false),
         "bluetooth-scan" => bluetooth::scan(),
+        "files-places" => Ok(files::places()),
+        "files-list" => files::list(arg("path"), msg["hidden"].as_bool().unwrap_or(false)),
+        "files-open" => files::open(arg("path")),
+        "files-mkdir" => files::mkdir(arg("path"), arg("name")),
+        "files-rename" => files::rename(arg("path"), arg("name")),
+        "files-copy" => files::transfer(&strings(&msg["paths"]), arg("to"), true),
+        "files-move" => files::transfer(&strings(&msg["paths"]), arg("to"), false),
+        "files-trash" => files::to_trash(&strings(&msg["paths"])),
         "bluetooth-pair" => bluetooth::pair(arg("path")),
         "lock" => brightness::compositor(json!({ "cmd": "lock" })).unwrap_or(Err("not in Karakulak's compositor".into())),
         "unlock" => brightness::compositor(json!({ "cmd": "unlock", "password": arg("password") }))
             .unwrap_or(Err("not in Karakulak's compositor".into())),
         cmd => Err(format!("unknown command: {cmd}")),
     }
+}
+
+fn strings(value: &Value) -> Vec<String> {
+    value
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|v| v.as_str().map(String::from))
+        .collect()
 }
 
 fn systemctl(action: &str) -> Result<Value, String> {

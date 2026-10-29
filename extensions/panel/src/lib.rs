@@ -3,6 +3,8 @@
 
 use std::time::Duration;
 
+mod files;
+
 use karakulak_browser::{call, object};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
@@ -461,6 +463,11 @@ fn Panel() -> impl IntoView {
         <Wifi on_error=set_error />
         <BluetoothSection on_error=set_error />
         <div class="power">
+            <button on:click={move |_| {
+                spawn_local(async move {
+                    let _ = call("tabs.create", &[object(&[("url", "files.html".into())])]).await;
+                });
+            }}>"Dosyalar"</button>
             <button on:click={move |_| run::<()>("lock", vec![], set_error, |_| {})}>"Kilitle"</button>
             <PowerButton label="Uyku" cmd="suspend" on_error=set_error />
             <PowerButton label="Yeniden başlat" cmd="reboot" on_error=set_error />
@@ -472,5 +479,11 @@ fn Panel() -> impl IntoView {
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    mount_to_body(Panel);
+    // One module for the popup and the pages it opens.
+    let path = window().location().pathname().unwrap_or_default();
+    if path.ends_with("/files.html") {
+        mount_to_body(files::Files);
+    } else {
+        mount_to_body(Panel);
+    }
 }

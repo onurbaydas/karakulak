@@ -1,0 +1,272 @@
+//! File manager page (files.html). The work is done by karakulakd; files are
+//! opened in Firefox itself.
+
+use leptos::prelude::*;
+use serde::Deserialize;
+use wasm_bindgen::JsValue;
+
+use crate::run;
+
+#[derive(Clone, Deserialize)]
+struct Place {
+    name: String,
+    path: String,
+}
+
+#[derive(Clone, Deserialize)]
+struct Entry {
+    name: String,
+    path: String,
+    dir: bool,
+    size: u64,
+    modified: Option<u64>,
+}
+
+#[derive(Clone, Deserialize)]
+struct Listing {
+    path: String,
+    parent: Option<String>,
+    entries: Vec<Entry>,
+    truncated: bool,
+}
+
+/// Paths to paste, and whether they were cut (move) or copied.
+#[derive(Clone)]
+struct Clipboard {
+    paths: Vec<String>,
+    cut: bool,
+}
+
+fn size_text(size: u64) -> String {
+    const UNITS: [&str; 5] = ["B", "KB", "MB", "GB", "TB"];
+    let mut value = size as f64;
+    let mut unit = 0;
+    while value >= 1024.0 && unit < UNITS.len() - 1 {
+        value /= 1024.0;
+        unit += 1;
+    }
+    if unit == 0 {
+        format!("{size} B")
+    } else {
+        format!("{value:.1} {}", UNITS[unit])
+    }
+}
+
+fn date_text(secs: Option<u64>) -> String {
+    let Some(secs) = secs else {
+        return String::new();
+    };
+    let date = js_sys::Date::new(&JsValue::from_f64(secs as f64 * 1000.0));
+    String::from(date.to_locale_date_string("tr-TR", &JsValue::UNDEFINED))
+        + " "
+        + &String::from(date.to_locale_time_string_with_options(
+            "tr-TR",
+            &karakulak_browser::object(&[("hour", "2-digit".into()), ("minute", "2-digit".into())]),
+        ))
+}
+
+fn ask(question: &str, default: &str) -> Option<String> {
+    window()
+        .prompt_with_message_and_default(question, default)
+        .ok()
+        .flatten()
+        .filter(|s| !s.trim().is_empty())
+}
+
+#[component]
+pub fn Files() -> impl IntoView {
+    let (error, set_error) = signal(String::new());
+    let places = RwSignal::new(Vec::<Place>::new());
+    let listing = RwSignal::new(None::<Listing>);
+    let history = RwSignal::new(Vec::<String>::new());
+    let selected = RwSignal::new(Vec::<String>::new());
+    let clipboard = RwSignal::new(None::<Clipboard>);
+    let hidden = RwSignal::new(false);
+
+    let load = move |path: String| {
+        set_error.set(String::new());
+        let args = vec![("path", path.into()), ("hidden", hidden.get_untracked().into())];
+        run::<Listing>("files-list", args, set_error, move |l| {
+            selected.set(Vec::new());
+            listing.set(l);
+        });
+    };
+    let current = move || listing.get_untracked().map(|l| l.path).unwrap_or_default();
+    let go = move |path: String| {
+        let here = current();
+        if !here.is_empty() {
+            history.update(|h| h.push(here));
+        }
+        load(path);
+    };
+    let reload = move || load(current());
+
+    run::<Vec<Place>>("files-places", vec![], set_error, move |p| {
+        let p = p.unwrap_or_default();
+        if let Some(home) = p.first() {
+            load(home.path.clone());
+        }
+        places.set(p);
+    });
+
+    let back = move |_| {
+        let mut previous = None;
+        history.update(|h| previous = h.pop());
+        if let Some(path) = previous {
+            load(path);
+        }
+    };
+    let up = move |_| {
+        if let Some(parent) = listing.get_untracked().and_then(|l| l.parent) {
+            go(parent);
+        }
+    };
+    let new_folder = move |_| {
+        if let Some(name) = ask("Yeni klasörün adı:", "Yeni klasör") {
+            run::<()>("files-mkdir", vec![("path", current().into()), ("name", name.into())], set_error, move |_| {
+                reload()
+            });
+        }
+    };
+    let rename = move |_| {
+        let Some(path) = selected.get_untracked().first().cloned() else {
+            return;
+        };
+        let old = path.rsplit('/').next().unwrap_or_default().to_string();
+        if let Some(name) = ask("Yeni ad:", &old) {
+            run::<()>("files-rename", vec![("path", path.into()), ("name", name.into())], set_error, move |_| {
+                reload()
+            });
+        }
+    };
+    let copy = move |cut: bool| {
+        let paths = selected.get_untracked();
+        if !paths.is_empty() {
+            clipboard.set(Some(Clipboard { paths, cut }));
+        }
+    };
+    let paste = move |_| {
+        let Some(clip) = clipboard.get_untracked() else {
+            return;
+        };
+        let paths = js_sys::Array::new();
+        for path in &clip.paths {
+            paths.push(&JsValue::from_str(path));
+        }
+        let cmd = if clip.cut { "files-move" } else { "files-copy" };
+        if clip.cut {
+            clipboard.set(None);
+        }
+        run::<()>(cmd, vec![("paths", paths.into()), ("to", current().into())], set_error, move |_| reload());
+    };
+    let trash = move |_| {
+        let selection = selected.get_untracked();
+        if selection.is_empty() {
+            return;
+        }
+        let paths = js_sys::Array::new();
+        for path in &selection {
+            paths.push(&JsValue::from_str(path));
+        }
+        run::<()>("files-trash", vec![("paths", paths.into())], set_error, move |_| reload());
+    };
+    let toggle_hidden = move |_| {
+        hidden.update(|h| *h = !*h);
+        reload();
+    };
+
+    let rows = move || {
+        listing.get().map(|l| {
+            l.entries
+                .into_iter()
+                .map(|entry| {
+                    let path = entry.path.clone();
+                    let is_selected = {
+                        let path = path.clone();
+                        move || selected.get().contains(&path)
+                    };
+                    let click = {
+                        let path = path.clone();
+                        move |ev: leptos::ev::MouseEvent| {
+                            let path = path.clone();
+                            selected.update(|s| {
+                                if ev.ctrl_key() {
+                                    if let Some(i) = s.iter().position(|p| *p == path) {
+                                        s.remove(i);
+                                    } else {
+                                        s.push(path);
+                                    }
+                                } else {
+                                    *s = vec![path];
+                                }
+                            });
+                        }
+                    };
+                    let open = {
+                        let path = path.clone();
+                        move |_| {
+                            if entry.dir {
+                                go(path.clone());
+                            } else {
+                                run::<()>("files-open", vec![("path", path.clone().into())], set_error, |_| {});
+                            }
+                        }
+                    };
+                    view! {
+                        <tr class:selected=is_selected on:click=click on:dblclick=open>
+                            <td class="name">{if entry.dir { "📁 " } else { "📄 " }}{entry.name}</td>
+                            <td class="size">{if entry.dir { String::new() } else { size_text(entry.size) }}</td>
+                            <td class="date">{date_text(entry.modified)}</td>
+                        </tr>
+                    }
+                })
+                .collect_view()
+        })
+    };
+
+    view! {
+        <div class="files">
+            <nav class="places">
+                <For each=move || places.get() key=|p| p.path.clone() let:place>
+                    {
+                        let path = place.path.clone();
+                        let active = {
+                            let path = path.clone();
+                            move || listing.get().is_some_and(|l| l.path == path)
+                        };
+                        view! {
+                            <button class:active=active on:click=move |_| go(path.clone())>{place.name}</button>
+                        }
+                    }
+                </For>
+            </nav>
+            <main>
+                <header class="toolbar">
+                    <button title="Geri" prop:disabled=move || history.get().is_empty() on:click=back>"←"</button>
+                    <button title="Üst klasör" on:click=up>"↑"</button>
+                    <span class="path">{move || listing.get().map(|l| l.path).unwrap_or_default()}</span>
+                    <button on:click=new_folder>"Yeni klasör"</button>
+                    <button prop:disabled=move || selected.get().len() != 1 on:click=rename>"Yeniden adlandır"</button>
+                    <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(false)>"Kopyala"</button>
+                    <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(true)>"Kes"</button>
+                    <button prop:disabled=move || clipboard.get().is_none() on:click=paste>"Yapıştır"</button>
+                    <button class="danger" prop:disabled=move || selected.get().is_empty() on:click=trash>"Çöpe at"</button>
+                    <label>
+                        <input type="checkbox" prop:checked=hidden on:change=toggle_hidden />
+                        "Gizli"
+                    </label>
+                </header>
+                <p class="error" role="alert">{error}</p>
+                <table>
+                    <thead>
+                        <tr><th>"Ad"</th><th>"Boyut"</th><th>"Değiştirilme"</th></tr>
+                    </thead>
+                    <tbody>{rows}</tbody>
+                </table>
+                <Show when=move || listing.get().is_some_and(|l| l.truncated)>
+                    <p class="note">"Bu klasörde çok fazla dosya var, ilk 3000 tanesi gösteriliyor."</p>
+                </Show>
+            </main>
+        </div>
+    }
+}
