@@ -128,6 +128,18 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Tor ile gezinme (Ayarlar'dan aç/kapa)
 - [x] Yedekleme: ayarlar ve Firefox profili USB'ye, geri yükleme
 
+## v0.9 — Sürüme hazırlık
+
+- [ ] Güvenlik denetimi: bağımlılık taraması (cargo audit) her derlemede, karakulakd ve
+  yetki kurallarının gözden geçirilmesi
+- [ ] Eklenti imzalamayı hızlandırma: kaynak kodu Mozilla'ya gönderme
+- [ ] Karakulak'ın kendi APT deposu: kurulu sistemler güncellemeleri alır
+- [ ] GitHub Releases: ISO, SHA256, imza, değişiklik listesi
+- [ ] Sorun bildirme sayfası: kayıtları tek dosyada toplar, hiçbir şey gönderilmez
+- [ ] Yardım sayfası (Türkçe ve İngilizce kullanım kılavuzu)
+- [ ] Erişilebilirlik: yüksek kontrast, büyük yazı
+- [ ] ISO boyutunu küçültme
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)
