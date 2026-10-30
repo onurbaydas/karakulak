@@ -43,8 +43,19 @@ ipp-usb
 
 # Network
 network-manager
+wpasupplicant
 ca-certificates
 
-# Firmware
+# Firmware: Wi-Fi and sound on most laptops need these
 firmware-linux-free
 firmware-misc-nonfree
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-sof-signed
+
+# Recommended by the packages above, but needed (the image skips recommends)
+polkitd
+systemd-timesyncd
+xdg-user-dirs
+libavcodec61

@@ -136,10 +136,11 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
   sürümler sürüm başına bir kez artırılıyor
 - [x] Karakulak'ın kendi APT deposu: kurulu sistemler güncellemeleri alır (ADR 0012)
 - [x] GitHub Releases: ISO, SHA256, imza, değişiklik listesi (sürüm etiketiyle)
-- [ ] Sorun bildirme sayfası: kayıtları tek dosyada toplar, hiçbir şey gönderilmez
-- [ ] Yardım sayfası (Türkçe ve İngilizce kullanım kılavuzu)
-- [ ] Erişilebilirlik: yüksek kontrast, büyük yazı
-- [ ] ISO boyutunu küçültme
+- [x] Sorun bildirme sayfası: kayıtları tek dosyada toplar, hiçbir şey gönderilmez
+- [x] Yardım sayfası (Türkçe ve İngilizce kullanım kılavuzu)
+- [x] Erişilebilirlik: yüksek kontrast, büyük yazı
+- [x] ISO boyutunu küçültme: önerilen paketler kurulmuyor, gerekenler açıkça listede;
+  laptop Wi-Fi ve ses firmware'i eklendi
 
 ## v1.0 — İlk sürüm
 
