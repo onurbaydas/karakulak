@@ -132,7 +132,8 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 
 - [x] Güvenlik denetimi: bağımlılık taraması (cargo audit) her derlemede, karakulakd ve
   yetki kurallarının gözden geçirilmesi (docs/security-review.md)
-- [ ] Eklenti imzalamayı hızlandırma: kaynak kodu Mozilla'ya gönderme
+- [x] Eklenti imzalamayı hızlandırma: kaynak kodu ve derleme talimatı Mozilla'ya gidiyor,
+  sürümler sürüm başına bir kez artırılıyor
 - [ ] Karakulak'ın kendi APT deposu: kurulu sistemler güncellemeleri alır
 - [ ] GitHub Releases: ISO, SHA256, imza, değişiklik listesi
 - [ ] Sorun bildirme sayfası: kayıtları tek dosyada toplar, hiçbir şey gönderilmez

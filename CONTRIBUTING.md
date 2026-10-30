@@ -50,6 +50,9 @@ Try an extension in Firefox (builds everything, opens a separate dev profile):
 Release Firefox only installs signed extensions, so the image ships signed
 `.xpi` files from `config/includes.chroot/usr/share/karakulak/extensions/`.
 To release a change, bump `version` in `extensions/<name>/ext/manifest.json`.
+Every new version goes through Mozilla's review, so bump once per Karakulak
+release rather than for every change. The Rust source and `extensions/BUILDING.md`
+are uploaded with each version so reviewers can rebuild the WebAssembly.
 On every push to `main`, CI signs changed extensions and commits the signed
 `.xpi`. Versions held for manual review by Mozilla are picked up on a later run.
 Maintainers can do the same locally with `extensions/sign.sh`.

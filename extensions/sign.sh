@@ -65,14 +65,19 @@ submit() {
 	name="$1"
 	"$root/extensions/build.sh" "$name"
 	tmp=$(mktemp -d)
+	# Reviewers get the Rust source the WebAssembly is built from.
+	(cd "$root/extensions" && zip -qr "$tmp/source.zip" BUILDING.md Cargo.toml Cargo.lock build.sh browser welcome panel lock \
+		-x '*/ext/pkg/*' '*/target/*')
 	# Credentials go through the environment, not argv, so they stay out of ps.
 	if WEB_EXT_API_KEY="$AMO_JWT_ISSUER" WEB_EXT_API_SECRET="$AMO_JWT_SECRET" \
 		npx --yes web-ext@8 sign \
 		--source-dir "$root/extensions/$name/ext" \
-		--artifacts-dir "$tmp" \
+		--artifacts-dir "$tmp/out" \
+		--upload-source-code "$tmp/source.zip" \
+		--amo-metadata "$root/extensions/amo-metadata.json" \
 		--channel unlisted \
 		--approval-timeout "${SIGN_APPROVAL_TIMEOUT:-600000}"; then
-		mv "$tmp"/*.xpi "$out/$name.xpi"
+		mv "$tmp"/out/*.xpi "$out/$name.xpi"
 		echo "Signed: $name"
 	else
 		echo "Not signed yet: $name (submitted; run again after Mozilla approves it)" >&2

@@ -1,0 +1,5 @@
+{
+  "version": {
+    "approval_notes": "Karakulak's own extension for the Karakulak operating system (https://github.com/onurbaydas/karakulak). The WebAssembly in pkg/ is compiled from the Rust source attached as source code; BUILDING.md in it explains how to rebuild it with wasm-pack. nativeMessaging talks to karakulakd, the system helper shipped with the OS."
+  }
+}
