@@ -134,8 +134,8 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
   yetki kurallarının gözden geçirilmesi (docs/security-review.md)
 - [x] Eklenti imzalamayı hızlandırma: kaynak kodu ve derleme talimatı Mozilla'ya gidiyor,
   sürümler sürüm başına bir kez artırılıyor
-- [ ] Karakulak'ın kendi APT deposu: kurulu sistemler güncellemeleri alır
-- [ ] GitHub Releases: ISO, SHA256, imza, değişiklik listesi
+- [x] Karakulak'ın kendi APT deposu: kurulu sistemler güncellemeleri alır (ADR 0012)
+- [x] GitHub Releases: ISO, SHA256, imza, değişiklik listesi (sürüm etiketiyle)
 - [ ] Sorun bildirme sayfası: kayıtları tek dosyada toplar, hiçbir şey gönderilmez
 - [ ] Yardım sayfası (Türkçe ve İngilizce kullanım kılavuzu)
 - [ ] Erişilebilirlik: yüksek kontrast, büyük yazı

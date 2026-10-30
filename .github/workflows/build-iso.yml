@@ -3,6 +3,8 @@ name: Build
 on:
   push:
     branches: [main]
+    # A version tag (v0.9.0) also publishes the package and a GitHub release.
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -114,9 +116,42 @@ jobs:
           done
           exit 1
 
+  # The karakulak package: installed in the image, and what installed systems
+  # update from (Karakulak's APT repository, published on version tags).
+  deb:
+    needs: [test, compositor, sign]
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.compositor.result == 'success' }}
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulakd
+          path: daemon/target/release
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulak-compositor
+          path: compositor/target/release
+      - name: Build
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) version="${GITHUB_REF#refs/tags/v}" ;;
+            # Lower than any release, so released packages replace it.
+            *) version="0.0.$(date -u +%Y%m%d%H%M)~${GITHUB_SHA%"${GITHUB_SHA#???????}"}" ;;
+          esac
+          scripts/build-deb.sh "$version" debs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: karakulak-deb
+          path: debs/*.deb
+
   iso:
-    needs: [test, audit, compositor, sign]
-    if: ${{ !cancelled() && needs.test.result == 'success' && needs.audit.result == 'success' && needs.compositor.result == 'success' }}
+    needs: [test, audit, compositor, sign, deb]
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.audit.result == 'success' && needs.deb.result == 'success' }}
     runs-on: ubuntu-latest
     container:
       image: debian:trixie
@@ -136,6 +171,11 @@ jobs:
         with:
           name: karakulak-compositor
           path: config/includes.chroot/usr/bin
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulak-deb
+          path: config/packages.chroot
 
       - name: Install live-build
         run: |
@@ -177,3 +217,61 @@ jobs:
         with:
           name: boot-test
           path: boot-test
+
+  # On a version tag: the APT repository on GitHub Pages and a GitHub release
+  # with the ISO, its checksums and their signature.
+  publish:
+    needs: [deb, iso, boot]
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.boot.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulak-deb
+          path: debs
+      - uses: actions/download-artifact@v4
+        with:
+          name: karakulak-iso
+          path: iso
+      - name: Signing key
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y apt-utils
+          echo "$APT_SIGNING_KEY" | gpg --batch --import
+      - name: APT repository
+        run: |
+          git fetch origin gh-pages || true
+          if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
+            git worktree add site origin/gh-pages
+          else
+            git worktree add --detach site
+            (cd site && git checkout --orphan gh-pages && git rm -rfq .)
+          fi
+          scripts/update-apt-repo.sh debs site/apt
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "APT repository: ${GITHUB_REF#refs/tags/}"
+          git push origin HEAD:gh-pages
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          mv iso/*.iso "karakulak-$tag-amd64.iso"
+          sha256sum "karakulak-$tag-amd64.iso" debs/*.deb | sed 's|debs/||' > SHA256SUMS
+          gpg --batch --armor --detach-sign SHA256SUMS
+          previous=$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null || true)
+          {
+            echo "## Changes"
+            git log --format='- %s' ${previous:+"$previous..$tag"} | grep -v '\[skip ci\]'
+            echo
+            echo "Verify: \`gpg --verify SHA256SUMS.asc && sha256sum -c SHA256SUMS\` (key: karakulak-archive-key.asc)"
+          } > notes.md
+          gh release create "$tag" --title "Karakulak $tag" --notes-file notes.md \
+            "karakulak-$tag-amd64.iso" debs/*.deb SHA256SUMS SHA256SUMS.asc config/archives/karakulak-archive-key.asc

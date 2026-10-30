@@ -1,0 +1,6 @@
+# Karakulak's own packages: the compositor, karakulakd, extensions, settings.
+Types: deb
+URIs: https://onurbaydas.github.io/karakulak/apt
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/karakulak-archive-keyring.asc
