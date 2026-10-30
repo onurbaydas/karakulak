@@ -18,7 +18,7 @@ fn home() -> Result<PathBuf, String> {
     dirs::home_dir().ok_or_else(|| "no home folder".into())
 }
 
-fn stamp() -> String {
+pub fn stamp() -> String {
     let now = unsafe { libc::time(std::ptr::null_mut()) };
     let mut tm: libc::tm = unsafe { std::mem::zeroed() };
     unsafe { libc::localtime_r(&now, &mut tm) };

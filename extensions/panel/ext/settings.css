@@ -131,3 +131,14 @@ kbd {
   border: 1px solid var(--line);
   border-radius: 0.3rem;
 }
+
+.report {
+  max-height: 60vh;
+  overflow: auto;
+  padding: 1rem;
+  font: 0.8rem/1.4 ui-monospace, monospace;
+  white-space: pre-wrap;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}

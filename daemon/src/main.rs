@@ -8,6 +8,7 @@ mod bluetooth;
 mod brightness;
 mod files;
 mod terminal;
+mod report;
 mod system;
 mod tasks;
 mod usb;
@@ -107,6 +108,8 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "update-now" => system::update_now(),
         "firewall" => system::firewall(),
         "tor" => system::tor(),
+        "accessibility" => system::accessibility(),
+        "set-high-contrast" => system::set_high_contrast(msg["on"].as_bool().unwrap_or(false)),
         "set-tor" => system::set_tor(msg["on"].as_bool().unwrap_or(false)),
         "set-firewall" => system::set_firewall(msg["on"].as_bool().unwrap_or(true)),
         "vpn-list" => vpn::list(),
@@ -114,6 +117,7 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "vpn-set" => vpn::set_active(arg("id"), msg["on"].as_bool().unwrap_or(false)),
         "vpn-remove" => vpn::remove(arg("id")),
         "tasks" => tasks::overview(),
+        "report" => report::create(),
         "backup" => backup::backup(arg("folder")),
         "backups" => backup::list(),
         "restore" => backup::restore(arg("path")),

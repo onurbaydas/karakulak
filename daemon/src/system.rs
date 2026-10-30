@@ -154,3 +154,25 @@ pub fn set_tor(on: bool) -> Result<Value, String> {
     std::thread::sleep(std::time::Duration::from_millis(500));
     tor()
 }
+
+/// High contrast is a Firefox preference, written into the profile at the
+/// next login (karakulak-session) while this flag file exists.
+fn high_contrast_flag() -> Option<std::path::PathBuf> {
+    Some(dirs::config_dir()?.join("karakulak/high-contrast"))
+}
+
+/// `{"high_contrast"}`
+pub fn accessibility() -> Result<Value, String> {
+    Ok(json!({ "high_contrast": high_contrast_flag().is_some_and(|f| f.exists()) }))
+}
+
+pub fn set_high_contrast(on: bool) -> Result<Value, String> {
+    let flag = high_contrast_flag().ok_or("no config folder")?;
+    if on {
+        std::fs::create_dir_all(flag.parent().unwrap()).map_err(err)?;
+        std::fs::write(&flag, "").map_err(err)?;
+    } else {
+        let _ = std::fs::remove_file(&flag);
+    }
+    accessibility()
+}

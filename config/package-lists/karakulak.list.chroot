@@ -27,6 +27,7 @@ bluez
 
 # Files: USB sticks, trash
 udisks2
+pciutils
 
 # System settings: languages, updates, firewall
 locales

@@ -4,6 +4,7 @@
 use std::time::Duration;
 
 mod files;
+mod help;
 mod newtab;
 mod notify;
 mod settings;
@@ -635,6 +636,12 @@ pub fn start() {
     if path.ends_with("/files.html") {
         title("Dosyalar", "Files");
         mount_to_body(files::Files);
+    } else if path.ends_with("/help.html") {
+        title("Yardım", "Help");
+        mount_to_body(help::Help);
+    } else if path.ends_with("/report.html") {
+        title("Sorun bildir", "Report a problem");
+        mount_to_body(help::ReportPage);
     } else if path.ends_with("/shortcuts.html") {
         title("Kısayollar", "Keyboard shortcuts");
         mount_to_body(shortcuts::Shortcuts);

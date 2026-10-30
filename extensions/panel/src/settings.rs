@@ -277,6 +277,63 @@ fn BackupSettings(on_error: WriteSignal<String>) -> impl IntoView {
 }
 
 #[derive(Clone, Deserialize)]
+struct Accessibility {
+    high_contrast: bool,
+}
+
+#[component]
+fn AccessibilitySettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let a11y = RwSignal::new(None::<Accessibility>);
+    run::<Accessibility>("accessibility", vec![], on_error, move |a| a11y.set(a));
+    let screens = RwSignal::new(Vec::<Screen>::new());
+    run::<Vec<Screen>>("screens", vec![], on_error, move |s| screens.set(s.unwrap_or_default()));
+
+    // Larger text: the same scale on every screen.
+    let set_text_size = move |ev: leptos::ev::Event| {
+        let Ok(scale) = event_target_value(&ev).parse::<f64>() else { return };
+        for screen in screens.get_untracked() {
+            let (w, h, r) = screen.current.unwrap_or_default();
+            let args = vec![
+                ("id", screen.id.clone().into()),
+                ("width", w.into()),
+                ("height", h.into()),
+                ("refresh", r.into()),
+                ("scale", scale.into()),
+            ];
+            run::<Vec<Screen>>("set-screen", args, on_error, move |s| screens.set(s.unwrap_or_default()));
+        }
+    };
+    let current_scale = move || screens.get().first().map_or(1.0, |s| s.scale);
+
+    view! {
+        <section class="card">
+            <label>
+                {t("Yazı ve simge boyutu", "Text and icon size")}
+                <select on:change=set_text_size>
+                    {[1.0, 1.25, 1.5, 2.0].map(|s| {
+                        view! { <option value=s.to_string() selected=move || (current_scale() - s).abs() < 0.01>{format!("%{}", (s * 100.0) as u32)}</option> }
+                    })}
+                </select>
+            </label>
+            <label>
+                <span>
+                    {t("Yüksek kontrast", "High contrast")}
+                    <small class="hint">{t("Bir sonraki girişte uygulanır.", "Applies at the next login.")}</small>
+                </span>
+                <input
+                    type="checkbox"
+                    prop:checked=move || a11y.get().is_some_and(|a| a.high_contrast)
+                    on:change=move |_| {
+                        let on = !a11y.get_untracked().is_some_and(|a| a.high_contrast);
+                        run::<Accessibility>("set-high-contrast", vec![("on", on.into())], on_error, move |a| a11y.set(a));
+                    }
+                />
+            </label>
+        </section>
+    }
+}
+
+#[derive(Clone, Deserialize)]
 struct Tor {
     on: bool,
     ready: bool,
@@ -684,7 +741,13 @@ pub fn Settings() -> impl IntoView {
     view! {
         <main class="settings">
             <h1>{t("Ayarlar", "Settings")}</h1>
-            <p><a href="shortcuts.html">{t("Klavye kısayolları (Super + /)", "Keyboard shortcuts (Super + /)")}</a></p>
+            <p>
+                <a href="help.html">{t("Yardım", "Help")}</a>
+                " · "
+                <a href="shortcuts.html">{t("Klavye kısayolları (Super + /)", "Keyboard shortcuts (Super + /)")}</a>
+                " · "
+                <a href="report.html">{t("Sorun bildir", "Report a problem")}</a>
+            </p>
             <p class="error" role="alert">{error}</p>
             <h2 class="group">{t("Ekranlar", "Screens")}</h2>
             {move || {
@@ -697,6 +760,8 @@ pub fn Settings() -> impl IntoView {
             <BrightnessSettings on_error=set_error />
             <p class="hint">{t("Parlaklık tuşları ekranı değiştirmiyorsa \"yazılımla karart\"ı aç.", "If the brightness keys do not change a screen, turn on \"dim in software\".")}</p>
             <NightLight on_error=set_error />
+            <h2 class="group">{t("Erişilebilirlik", "Accessibility")}</h2>
+            <AccessibilitySettings on_error=set_error />
             <h2 class="group">{t("Bölge ve dil", "Region and language")}</h2>
             <RegionSettings on_error=set_error />
             <h2 class="group">{t("Gizlilik", "Privacy")}</h2>

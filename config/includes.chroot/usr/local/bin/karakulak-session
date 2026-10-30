@@ -29,6 +29,14 @@ if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
 fi
 printf 'user_pref("extensions.webextensions.uuids", "{\\"panel@karakulak\\":\\"%s\\"}");\n' "$PANEL_UUID" \
 	> "$PROFILE/user.js"
+# High contrast from Settings: system colors instead of the pages' own.
+if [ -e "$HOME/.config/karakulak/high-contrast" ]; then
+	echo 'user_pref("browser.display.document_color_use", 2);' >> "$PROFILE/user.js"
+	echo 'user_pref("ui.useAccessibilityTheme", 1);' >> "$PROFILE/user.js"
+else
+	echo 'user_pref("browser.display.document_color_use", 0);' >> "$PROFILE/user.js"
+	echo 'user_pref("ui.useAccessibilityTheme", 0);' >> "$PROFILE/user.js"
+fi
 
 # The lock screen: an empty kiosk profile showing only the lock page.
 mkdir -p "$LOCK_PROFILE"
