@@ -50,6 +50,10 @@
       "SponsoredPocket": false,
       "Pocket": false,
       "Locked": true
+    },
+    "Homepage": {
+      "URL": "moz-extension://2951297c-2f42-4d49-b13d-f93f0c191b13/newtab.html",
+      "StartPage": "homepage"
     }
   }
 }
