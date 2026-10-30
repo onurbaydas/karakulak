@@ -585,6 +585,7 @@ dependencies = [
  "base64",
  "ddc-hi",
  "dirs",
+ "libc",
  "portable-pty",
  "serde_json",
  "trash",

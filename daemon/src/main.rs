@@ -8,6 +8,7 @@ mod brightness;
 mod files;
 mod terminal;
 mod system;
+mod tasks;
 mod usb;
 mod vpn;
 mod wifi;
@@ -82,6 +83,8 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "vpn-import" => vpn::import(arg("name"), arg("config")),
         "vpn-set" => vpn::set_active(arg("id"), msg["on"].as_bool().unwrap_or(false)),
         "vpn-remove" => vpn::remove(arg("id")),
+        "tasks" => tasks::overview(),
+        "task-stop" => tasks::stop(num(msg, "pid"), msg["force"].as_bool().unwrap_or(false)),
         "term-open" => terminal::open(num(msg, "cols"), num(msg, "rows")),
         "term-input" => terminal::input(num(msg, "term"), arg("data")),
         "term-resize" => terminal::resize(num(msg, "term"), num(msg, "cols"), num(msg, "rows")),

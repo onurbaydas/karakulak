@@ -6,6 +6,7 @@ use std::time::Duration;
 mod files;
 mod newtab;
 mod settings;
+mod tasks;
 mod terminal;
 
 use karakulak_browser::{call, object, t};
@@ -591,6 +592,11 @@ fn Panel() -> impl IntoView {
             }}>"Terminal"</button>
             <button on:click={move |_| {
                 spawn_local(async move {
+                    let _ = call("tabs.create", &[object(&[("url", "tasks.html".into())])]).await;
+                });
+            }}>{t("Görevler", "Tasks")}</button>
+            <button on:click={move |_| {
+                spawn_local(async move {
                     let _ = call("tabs.create", &[object(&[("url", "settings.html".into())])]).await;
                 });
             }}>{t("Ayarlar", "Settings")}</button>
@@ -611,6 +617,9 @@ pub fn start() {
     if path.ends_with("/files.html") {
         title("Dosyalar", "Files");
         mount_to_body(files::Files);
+    } else if path.ends_with("/tasks.html") {
+        title("Görev yöneticisi", "Task manager");
+        mount_to_body(tasks::Tasks);
     } else if path.ends_with("/newtab.html") {
         title("Yeni sekme", "New tab");
         mount_to_body(newtab::NewTab);
