@@ -55,6 +55,8 @@ pub struct State {
     pub power: crate::power::Power,
     /// Screens still to be saved for a Print Screen.
     pub screenshots_pending: Vec<String>,
+    /// Magnifier: 1.0 is off.
+    pub zoom: f64,
     pub idle_inhibit_state: smithay::wayland::idle_inhibit::IdleInhibitManagerState,
     /// Fractional scales (125%, 150%...) drawn sharply: clients render at the
     /// exact size and hand it over through a viewport.
@@ -114,6 +116,7 @@ impl State {
             overlays: Default::default(),
             power: Default::default(),
             screenshots_pending: Vec::new(),
+            zoom: 1.0,
             idle_inhibit_state,
             fractional_scale_state,
             viewporter_state,

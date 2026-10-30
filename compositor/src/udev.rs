@@ -78,6 +78,7 @@ render_elements! {
     Pointer=PointerRenderElement<R>,
     Dimmer=SolidColorRenderElement,
     Space=SpaceRenderElements<R, E>,
+    Zoomed=smithay::backend::renderer::element::utils::RescaleRenderElement<SpaceRenderElements<R, E>>,
 }
 
 /// What a screen shows: pointer, dimming layer, windows (front to back).
@@ -91,6 +92,7 @@ impl<R: Renderer + ImportAll + ImportMem, E: smithay::backend::renderer::element
             Self::Pointer(e) => f.debug_tuple("Pointer").field(e).finish(),
             Self::Dimmer(e) => f.debug_tuple("Dimmer").field(e).finish(),
             Self::Space(e) => f.debug_tuple("Space").field(e).finish(),
+            Self::Zoomed(e) => f.debug_tuple("Zoomed").field(e).finish(),
             Self::_GenericCatcher(e) => f.debug_tuple("_GenericCatcher").field(e).finish(),
         }
     }
@@ -638,6 +640,15 @@ impl State {
         }
         elements.extend(overlays.into_iter().map(OutputElements::Dimmer));
         match self.space.render_elements_for_output(&mut renderer, &output, 1.0) {
+            // The magnifier scales the windows around the pointer, which stays
+            // put, so clicks still land where they appear to.
+            Ok(space) if self.zoom > 1.0 => {
+                let origin = (pointer_location - output_geometry.loc.to_f64()).to_physical(scale).to_i32_round();
+                let zoom = self.zoom;
+                elements.extend(space.into_iter().map(|e| {
+                    OutputElements::Zoomed(smithay::backend::renderer::element::utils::RescaleRenderElement::from_element(e, origin, zoom))
+                }));
+            }
             Ok(space) => elements.extend(space.into_iter().map(OutputElements::Space)),
             Err(e) => warn!("could not render windows: {e:?}"),
         }

@@ -115,7 +115,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Ses cihazı seçimi, mikrofon seviyesi
 - [x] Kesirli ölçek (%125, %150, %175...), keskin çizim (fractional-scale, viewporter)
 - [x] İngilizce arayüz (tarayıcının diline göre Türkçe ya da İngilizce)
-- [ ] Ekran büyüteci (Super+artı/eksi)
+- [x] Ekran büyüteci (Super+artı/eksi, Super+0 kapatır), imlecin etrafında
 - [ ] Bluetooth'ta kod isteyen cihazlar
 
 ## v1.0 — İlk sürüm

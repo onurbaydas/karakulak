@@ -17,6 +17,8 @@ enum Action {
     Volume(Option<i32>),
     Brightness(f64),
     Screenshot,
+    /// Magnifier: factor to multiply by, or `None` to switch it off.
+    Zoom(Option<f64>),
     Tile(Slot),
     MoveToScreen(i32),
     NextWindow,
@@ -77,6 +79,9 @@ impl State {
                                 (false, keysyms::KEY_Up) => Some(Action::Tile(Slot::Full)),
                                 (true, keysyms::KEY_Left) => Some(Action::MoveToScreen(-1)),
                                 (true, keysyms::KEY_Right) => Some(Action::MoveToScreen(1)),
+                                (_, keysyms::KEY_plus | keysyms::KEY_equal | keysyms::KEY_KP_Add) => Some(Action::Zoom(Some(1.25))),
+                                (_, keysyms::KEY_minus | keysyms::KEY_KP_Subtract) => Some(Action::Zoom(Some(0.8))),
+                                (_, keysyms::KEY_0 | keysyms::KEY_KP_0) => Some(Action::Zoom(None)),
                                 _ => None,
                             };
                             if let Some(action) = action {
@@ -92,6 +97,9 @@ impl State {
                     Some(Action::Volume(step)) => self.change_volume(step),
                     Some(Action::Brightness(step)) => self.change_brightness(step),
                     Some(Action::Screenshot) => self.request_screenshot(),
+                    Some(Action::Zoom(factor)) => {
+                        self.zoom = factor.map_or(1.0, |f| (self.zoom * f).clamp(1.0, 8.0));
+                    }
                     Some(Action::Tile(slot)) => self.tile_focused(slot),
                     Some(Action::MoveToScreen(step)) => self.move_focused_to_screen(step),
                     Some(Action::NextWindow) => self.cycle_windows(),
