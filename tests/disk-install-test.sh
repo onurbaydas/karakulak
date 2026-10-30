@@ -20,7 +20,8 @@ work=$(mktemp -d)
 uefi=""
 if [ "$firmware" = uefi ]; then
 	cp "${OVMF_VARS:-/usr/share/OVMF/OVMF_VARS_4M.fd}" "$work/vars.fd"
-	uefi="-drive if=pflash,format=raw,readonly=on,file=${OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd} -drive if=pflash,format=raw,file=$work/vars.fd"
+	# q35: OVMF does not bring up the older i440fx board's CD drive.
+	uefi="-machine q35 -drive if=pflash,format=raw,readonly=on,file=${OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd} -drive if=pflash,format=raw,file=$work/vars.fd"
 fi
 
 xorriso -osirrox on -indev "$iso" -extract /live/vmlinuz "$work/vmlinuz" -extract /live/initrd.img "$work/initrd.img" \
