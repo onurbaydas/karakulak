@@ -120,9 +120,9 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 
 ## v0.8 — Kontrol ve gizlilik
 
-- [ ] Görev yöneticisi: işlemci, bellek, disk; çalışan programlar, kapatma
-- [ ] Bildirimler: USB, güncelleme, pil, indirme
-- [ ] Kısayollar sayfası (Super+/)
+- [x] Görev yöneticisi: işlemci, bellek, disk; çalışan programlar, kapatma
+- [x] Bildirimler: USB, güncelleme, pil, indirme
+- [x] Kısayollar sayfası (Super+/)
 - [ ] Dosya yöneticisinde arama ve resim önizleme
 - [ ] Misafir oturumu: iz bırakmaz, çıkınca her şey silinir
 - [ ] Tor ile gezinme (Ayarlar'dan aç/kapa)

@@ -105,3 +105,29 @@ button.danger {
 button:disabled {
   opacity: 0.5;
 }
+
+a {
+  color: var(--accent);
+}
+
+.keys {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.keys td {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.keys td:first-child {
+  width: 16rem;
+}
+
+kbd {
+  font: 0.9rem ui-monospace, monospace;
+  padding: 0.15rem 0.45rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.3rem;
+}

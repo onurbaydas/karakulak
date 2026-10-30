@@ -7,6 +7,7 @@ mod files;
 mod newtab;
 mod notify;
 mod settings;
+mod shortcuts;
 mod tasks;
 mod terminal;
 
@@ -618,6 +619,9 @@ pub fn start() {
     if path.ends_with("/files.html") {
         title("Dosyalar", "Files");
         mount_to_body(files::Files);
+    } else if path.ends_with("/shortcuts.html") {
+        title("Kısayollar", "Keyboard shortcuts");
+        mount_to_body(shortcuts::Shortcuts);
     } else if path.ends_with("/tasks.html") {
         title("Görev yöneticisi", "Task manager");
         mount_to_body(tasks::Tasks);

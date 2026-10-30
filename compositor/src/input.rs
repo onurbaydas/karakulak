@@ -19,6 +19,8 @@ enum Action {
     Screenshot,
     /// Magnifier: factor to multiply by, or `None` to switch it off.
     Zoom(Option<f64>),
+    /// Super+/: the page listing these shortcuts.
+    Help,
     Tile(Slot),
     MoveToScreen(i32),
     NextWindow,
@@ -82,6 +84,7 @@ impl State {
                                 (_, keysyms::KEY_plus | keysyms::KEY_equal | keysyms::KEY_KP_Add) => Some(Action::Zoom(Some(1.25))),
                                 (_, keysyms::KEY_minus | keysyms::KEY_KP_Subtract) => Some(Action::Zoom(Some(0.8))),
                                 (_, keysyms::KEY_0 | keysyms::KEY_KP_0) => Some(Action::Zoom(None)),
+                                (_, keysyms::KEY_slash | keysyms::KEY_question) => Some(Action::Help),
                                 _ => None,
                             };
                             if let Some(action) = action {
@@ -97,6 +100,11 @@ impl State {
                     Some(Action::Volume(step)) => self.change_volume(step),
                     Some(Action::Brightness(step)) => self.change_brightness(step),
                     Some(Action::Screenshot) => self.request_screenshot(),
+                    Some(Action::Help) => {
+                        if let Ok(command) = std::env::var("KARAKULAK_HELP_COMMAND") {
+                            let _ = std::process::Command::new("sh").arg("-c").arg(command).spawn();
+                        }
+                    }
                     Some(Action::Zoom(factor)) => {
                         self.zoom = factor.map_or(1.0, |f| (self.zoom * f).clamp(1.0, 8.0));
                     }

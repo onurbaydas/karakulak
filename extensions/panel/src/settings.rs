@@ -510,6 +510,7 @@ pub fn Settings() -> impl IntoView {
     view! {
         <main class="settings">
             <h1>{t("Ayarlar", "Settings")}</h1>
+            <p><a href="shortcuts.html">{t("Klavye kısayolları (Super + /)", "Keyboard shortcuts (Super + /)")}</a></p>
             <p class="error" role="alert">{error}</p>
             <h2 class="group">{t("Ekranlar", "Screens")}</h2>
             {move || {
