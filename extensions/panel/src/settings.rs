@@ -171,6 +171,112 @@ fn SoundSettings(on_error: WriteSignal<String>) -> impl IntoView {
 }
 
 #[derive(Clone, Deserialize)]
+struct Backup {
+    name: String,
+    path: String,
+}
+
+#[derive(Clone, Deserialize)]
+struct Disk {
+    name: String,
+    mounted: Option<String>,
+}
+
+#[derive(Clone, Deserialize)]
+struct Saved {
+    path: String,
+}
+
+#[derive(Clone, Deserialize)]
+struct Place {
+    path: String,
+}
+
+#[component]
+fn BackupSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let backups = RwSignal::new(Vec::<Backup>::new());
+    let disks = RwSignal::new(Vec::<Disk>::new());
+    let home = RwSignal::new(None::<String>);
+    let message = RwSignal::new(String::new());
+    let busy = RwSignal::new(false);
+    let refresh = move || {
+        run::<Vec<Backup>>("backups", vec![], on_error, move |b| backups.set(b.unwrap_or_default()));
+        run::<Vec<Disk>>("usb-list", vec![], on_error, move |d| disks.set(d.unwrap_or_default()));
+    };
+    refresh();
+    run::<Vec<Place>>("files-places", vec![], on_error, move |p| home.set(p.and_then(|p| p.first().map(|h| h.path.clone()))));
+
+    let save_to = move |folder: String| {
+        busy.set(true);
+        message.set(t("Yedekleniyor…", "Backing up…").into());
+        run::<Saved>("backup", vec![("folder", folder.into())], on_error, move |saved| {
+            busy.set(false);
+            message.set(saved.map(|s| format!("{} {}", t("Kaydedildi:", "Saved:"), s.path)).unwrap_or_default());
+            refresh();
+        });
+    };
+    let restore = move |path: String| {
+        run::<()>("restore", vec![("path", path.into())], on_error, move |_| {
+            message.set(
+                t(
+                    "Bir sonraki girişte geri yüklenecek ve şu anki profilin yerine geçecek.",
+                    "It will be restored at the next login, replacing the current profile.",
+                )
+                .into(),
+            )
+        });
+    };
+
+    view! {
+        <section class="card">
+            <p class="hint">
+                {t(
+                    "Yer imleri, şifreler, geçmiş ve Karakulak ayarları tek dosyada.",
+                    "Bookmarks, passwords, history and Karakulak settings in one file.",
+                )}
+            </p>
+            {move || home.get().map(|path| {
+                view! {
+                    <label>
+                        {t("Ev klasörüne yedekle", "Back up to the home folder")}
+                        <button prop:disabled=move || busy.get() on:click=move |_| save_to(path.clone())>{t("Yedekle", "Back up")}</button>
+                    </label>
+                }
+            })}
+            {move || {
+                disks.get()
+                    .into_iter()
+                    .filter_map(|d| d.mounted.map(|m| (d.name, m)))
+                    .map(|(name, mount)| {
+                        view! {
+                            <label>
+                                {format!("{} {name}", t("USB:", "USB:"))}
+                                <button prop:disabled=move || busy.get() on:click=move |_| save_to(mount.clone())>{t("Yedekle", "Back up")}</button>
+                            </label>
+                        }
+                    })
+                    .collect_view()
+            }}
+            {move || {
+                backups.get()
+                    .into_iter()
+                    .map(|b| {
+                        let path = b.path.clone();
+                        view! {
+                            <label>
+                                <span>{b.name} <small class="hint">{b.path.clone()}</small></span>
+                                <button on:click=move |_| restore(path.clone())>{t("Geri yükle", "Restore")}</button>
+                            </label>
+                        }
+                    })
+                    .collect_view()
+            }}
+            <p class="hint">{message}</p>
+        </section>
+    }
+}
+
+#[derive(Clone, Deserialize)]
 struct Tor {
     on: bool,
     ready: bool,
@@ -601,6 +707,8 @@ pub fn Settings() -> impl IntoView {
             <TorSettings on_error=set_error />
             <h2 class="group">"VPN"</h2>
             <VpnSettings on_error=set_error />
+            <h2 class="group">{t("Yedekleme", "Backup")}</h2>
+            <BackupSettings on_error=set_error />
             <h2 class="group">{t("Sistem", "System")}</h2>
             <SystemSettings on_error=set_error />
             <h2 class="group">{t("Önerilen eklentiler", "Recommended extensions")}</h2>

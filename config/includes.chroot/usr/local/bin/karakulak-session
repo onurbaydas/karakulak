@@ -8,6 +8,21 @@ LOCK_PROFILE="$HOME/.karakulak/lock-profile"
 LOCK_UUID=25132d8a-5beb-433b-85c5-3a44558bec2c
 PANEL_UUID=2951297c-2f42-4d49-b13d-f93f0c191b13
 
+# A backup chosen in Settings is put in place before Firefox opens the profile.
+PENDING="$HOME/.karakulak/restore-pending"
+if [ -d "$PENDING" ]; then
+	if [ -d "$PENDING/.karakulak/profile" ]; then
+		rm -rf "$PROFILE"
+		mv "$PENDING/.karakulak/profile" "$PROFILE"
+	fi
+	if [ -d "$PENDING/.config/karakulak" ]; then
+		rm -rf "$HOME/.config/karakulak"
+		mkdir -p "$HOME/.config"
+		mv "$PENDING/.config/karakulak" "$HOME/.config/karakulak"
+	fi
+	rm -rf "$PENDING"
+fi
+
 if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
 	mkdir -p "$PROFILE/chrome"
 	cp /usr/share/karakulak/firefox/userChrome.css "$PROFILE/chrome/userChrome.css"

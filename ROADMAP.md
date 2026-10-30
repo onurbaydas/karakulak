@@ -126,7 +126,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Dosya yöneticisinde arama ve resim önizleme
 - [x] Misafir oturumu: iz bırakmaz, çıkınca her şey silinir
 - [x] Tor ile gezinme (Ayarlar'dan aç/kapa)
-- [ ] Yedekleme: ayarlar ve Firefox profili USB'ye, geri yükleme
+- [x] Yedekleme: ayarlar ve Firefox profili USB'ye, geri yükleme
 
 ## v1.0 — İlk sürüm
 

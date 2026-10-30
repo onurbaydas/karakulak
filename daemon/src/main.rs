@@ -3,6 +3,7 @@
 //! Each message is a 4-byte native-endian length followed by JSON.
 
 mod audio;
+mod backup;
 mod bluetooth;
 mod brightness;
 mod files;
@@ -113,6 +114,9 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "vpn-set" => vpn::set_active(arg("id"), msg["on"].as_bool().unwrap_or(false)),
         "vpn-remove" => vpn::remove(arg("id")),
         "tasks" => tasks::overview(),
+        "backup" => backup::backup(arg("folder")),
+        "backups" => backup::list(),
+        "restore" => backup::restore(arg("path")),
         "watch" => watch::start(),
         "task-stop" => tasks::stop(num(msg, "pid"), msg["force"].as_bool().unwrap_or(false)),
         "term-open" => terminal::open(num(msg, "cols"), num(msg, "rows")),
