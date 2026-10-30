@@ -185,3 +185,29 @@ summary {
 .power .wide {
   grid-column: 1 / -1;
 }
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layout {
+  padding: 0.2rem 0.5rem;
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+}
+
+.modes button {
+  font-size: 0.85rem;
+}
+
+.modes button.active {
+  border-color: var(--accent);
+  font-weight: 600;
+}

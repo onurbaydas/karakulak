@@ -65,6 +65,11 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
             state.reload_keyboard();
             json!({ "ok": true, "result": null })
         }
+        Some("keyboard") => json!({ "ok": true, "result": state.layouts_json() }),
+        Some("next-layout") => {
+            state.next_layout();
+            json!({ "ok": true, "result": state.layouts_json() })
+        }
         Some("screens") => json!({ "ok": true, "result": state.screens_list() }),
         Some("set-screen") => {
             let n = |name: &str| request[name].as_i64().unwrap_or(0) as i32;

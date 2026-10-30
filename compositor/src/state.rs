@@ -47,15 +47,21 @@ pub struct State {
     pub output_manager_state: OutputManagerState,
     pub seat_state: SeatState<State>,
     pub data_device_state: DataDeviceState,
+    /// Select text, paste it with the middle button.
+    pub primary_selection_state: smithay::wayland::selection::primary_selection::PrimarySelectionState,
     pub popups: PopupManager,
 
     pub seat: Seat<Self>,
+    /// Keyboard layouts as configured, e.g. ["tr", "us"].
+    pub layouts: Vec<String>,
 
     pub brightness: crate::brightness::Brightness,
     pub overlays: crate::overlay::Overlays,
     pub power: crate::power::Power,
     /// Screens still to be saved for a Print Screen.
     pub screenshots_pending: Vec<String>,
+    /// Screen sharing: copies waiting for the next frame.
+    pub screencopies: Vec<crate::screencopy::Pending>,
     /// Magnifier: 1.0 is off.
     pub zoom: f64,
     pub idle_inhibit_state: smithay::wayland::idle_inhibit::IdleInhibitManagerState,
@@ -74,6 +80,8 @@ impl State {
         let shm_state = ShmState::new::<Self>(&dh, vec![]);
         let output_manager_state = OutputManagerState::new_with_xdg_output::<Self>(&dh);
         let data_device_state = DataDeviceState::new::<Self>(&dh);
+        let primary_selection_state =
+            smithay::wayland::selection::primary_selection::PrimarySelectionState::new::<Self>(&dh);
 
         let mut seat_state = SeatState::new();
         let mut seat: Seat<Self> = seat_state.new_wl_seat(&dh, "seat0");
@@ -91,6 +99,7 @@ impl State {
         let idle_inhibit_state = smithay::wayland::idle_inhibit::IdleInhibitManagerState::new::<Self>(&dh);
         let fractional_scale_state = smithay::wayland::fractional_scale::FractionalScaleManagerState::new::<Self>(&dh);
         let viewporter_state = smithay::wayland::viewporter::ViewporterState::new::<Self>(&dh);
+        crate::screencopy::init(&dh);
         let socket_name = Self::init_wayland_listener(display, event_loop);
 
         Self {
@@ -112,12 +121,15 @@ impl State {
             output_manager_state,
             seat_state,
             data_device_state,
+            primary_selection_state,
             popups: PopupManager::default(),
             seat,
+            layouts: crate::keyboard::layout_names(&layout),
             brightness: Default::default(),
             overlays: Default::default(),
             power: Default::default(),
             screenshots_pending: Vec::new(),
+            screencopies: Vec::new(),
             zoom: 1.0,
             idle_inhibit_state,
             fractional_scale_state,

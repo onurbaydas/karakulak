@@ -7,6 +7,7 @@ mod backup;
 mod bluetooth;
 mod brightness;
 mod files;
+mod power_profile;
 mod terminal;
 mod report;
 mod system;
@@ -48,6 +49,7 @@ const GUEST_ALLOWED: &[&str] = &[
     "ping", "session", "battery", "volume", "set-volume", "toggle-mute", "sound-devices", "set-sound-output",
     "wifi-list", "wifi-connect", "brightness", "set-brightness", "bluetooth", "bluetooth-connect",
     "bluetooth-disconnect", "watch", "guest-end", "lock", "unlock", "poweroff", "reboot", "suspend",
+    "keyboard-layout", "next-layout", "power-profile",
 ];
 
 fn is_guest() -> bool {
@@ -137,6 +139,10 @@ fn handle(msg: &Value) -> Result<Value, String> {
             request["cmd"] = json!("night-light");
             brightness::compositor(request).unwrap_or(Err("not in Karakulak's compositor".into()))
         }
+        "keyboard-layout" => brightness::compositor(json!({ "cmd": "keyboard" })).unwrap_or(Err("not in Karakulak's compositor".into())),
+        "next-layout" => brightness::compositor(json!({ "cmd": "next-layout" })).unwrap_or(Err("not in Karakulak's compositor".into())),
+        "power-profile" => power_profile::get(),
+        "set-power-profile" => power_profile::set(arg("profile")),
         "screens" => brightness::compositor(json!({ "cmd": "screens" })).unwrap_or(Err("not in Karakulak's compositor".into())),
         "set-screen" => {
             let mut request = msg.clone();

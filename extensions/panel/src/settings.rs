@@ -538,7 +538,21 @@ fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
 
     move || {
         regional.get().map(|r| {
-            let keyboard = KEYBOARDS.iter().position(|(l, v, _)| *l == r.layout && *v == r.variant);
+            // localed keeps two layouts comma separated: "tr,us" and "f,".
+            let layouts: Vec<&str> = r.layout.split(',').collect();
+            let variants: Vec<&str> = r.variant.split(',').collect();
+            let keyboard = |i: usize| {
+                let (layout, variant) = (layouts.get(i)?, variants.get(i).unwrap_or(&""));
+                KEYBOARDS.iter().position(|(l, v, _)| l == layout && v == variant)
+            };
+            let (first, second) = (keyboard(0), keyboard(1));
+            let set_keyboards = move |first: Option<usize>, second: Option<usize>| {
+                let chosen: Vec<_> = [first, second].into_iter().flatten().filter_map(|i| KEYBOARDS.get(i)).collect();
+                let layout = chosen.iter().map(|k| k.0).collect::<Vec<_>>().join(",");
+                let variant = chosen.iter().map(|k| k.1).collect::<Vec<_>>().join(",");
+                let args = vec![("layout", layout.into()), ("variant", variant.into())];
+                run::<Regional>("set-keyboard", args, on_error, update);
+            };
             view! {
                 <section class="card">
                     <label>
@@ -554,15 +568,25 @@ fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
                     <label>
                         {t("Klavye", "Keyboard")}
                         <select on:change=move |ev| {
-                            if let Some((layout, variant, _)) = event_target_value(&ev).parse::<usize>().ok().and_then(|i| KEYBOARDS.get(i)) {
-                                let args = vec![("layout", (*layout).into()), ("variant", (*variant).into())];
-                                run::<Regional>("set-keyboard", args, on_error, update);
-                            }
+                            set_keyboards(event_target_value(&ev).parse::<usize>().ok(), second);
                         }>
                             {KEYBOARDS
                                 .iter()
                                 .enumerate()
-                                .map(|(i, (_, _, name))| view! { <option value=i.to_string() selected=keyboard == Some(i)>{*name}</option> })
+                                .map(|(i, (_, _, name))| view! { <option value=i.to_string() selected=first == Some(i)>{*name}</option> })
+                                .collect_view()}
+                        </select>
+                    </label>
+                    <label>
+                        {t("İkinci klavye (Super+Boşluk ile geçilir)", "Second keyboard (switch with Super+Space)")}
+                        <select on:change=move |ev| {
+                            set_keyboards(first, event_target_value(&ev).parse::<usize>().ok());
+                        }>
+                            <option value="" selected=second.is_none()>{t("Yok", "None")}</option>
+                            {KEYBOARDS
+                                .iter()
+                                .enumerate()
+                                .map(|(i, (_, _, name))| view! { <option value=i.to_string() selected=second == Some(i)>{*name}</option> })
                                 .collect_view()}
                         </select>
                     </label>

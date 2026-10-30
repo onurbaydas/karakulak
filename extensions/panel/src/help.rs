@@ -7,7 +7,7 @@ use serde::Deserialize;
 use crate::run;
 
 /// (Turkish title, English title, Turkish text, English text)
-const TOPICS: [(&str, &str, &str, &str); 8] = [
+const TOPICS: [(&str, &str, &str, &str); 9] = [
     (
         "Panel",
         "Panel",
@@ -19,6 +19,12 @@ const TOPICS: [(&str, &str, &str, &str); 8] = [
         "Windows and screens",
         "Her ekranda bir Firefox penceresi açılır. Super + ok tuşlarıyla pencereleri yan yana dizebilirsin; bütün kısayollar için Super + /.",
         "Each screen gets a Firefox window. Arrange windows side by side with Super + arrow keys; Super + / lists every shortcut.",
+    ),
+    (
+        "Görüntülü görüşme",
+        "Video calls",
+        "Meet, Zoom, Discord gibi sitelerde ekranını paylaşabilirsin; şimdilik ilk ekran paylaşılır. Klavyen iki dilliyse Ayarlar'dan ikinci klavyeyi seç, Super + Boşluk ile geç.",
+        "Share your screen on sites like Meet, Zoom or Discord; for now the first screen is shared. For a second keyboard layout, pick it in Settings and switch with Super + Space.",
     ),
     (
         "Dosyalar",

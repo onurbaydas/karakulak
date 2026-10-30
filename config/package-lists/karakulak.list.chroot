@@ -15,6 +15,10 @@ dmz-cursor-theme
 libpam-systemd
 dbus-user-session
 
+# Screen sharing in Firefox: the portal asks the compositor for frames
+xdg-desktop-portal
+xdg-desktop-portal-wlr
+
 # Graphics and fonts
 libgl1-mesa-dri
 fonts-noto-core
@@ -24,6 +28,9 @@ fonts-noto-color-emoji
 pipewire-audio
 pulseaudio-utils
 bluez
+
+# Power modes (Performance / Balanced / Power saver)
+power-profiles-daemon
 
 # Files: USB sticks, trash
 udisks2

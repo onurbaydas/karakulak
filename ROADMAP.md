@@ -151,6 +151,15 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Eskiyen araçların güncellenmesi (GitHub eylemleri, wasm-pack)
 - [x] CHANGELOG.md
 
+## v0.9.2 — Günlük kullanım 2
+
+- [ ] Ekran paylaşımı (Meet, Zoom, Discord): ekran yöneticisi ekranı PipeWire'a
+  verir, Firefox xdg-desktop-portal üzerinden alır
+- [ ] Orta tıkla yapıştırma (seçili metin)
+- [ ] Güç modu: Performans / Dengeli / Pil tasarrufu (power-profiles-daemon)
+- [ ] İki klavye düzeni: Super+Boşluk ile geçiş, panelde hangi düzende olduğun
+- [ ] zbus 6'ya geçiş (#3)
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)

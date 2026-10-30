@@ -676,6 +676,9 @@ impl State {
             .map(|result| !result.is_empty)
             .map_err(|e| warn!("render error: {e:?}"))
             .unwrap_or(false);
+        if crate::screencopy::wanted(&mut self.screencopies, &output, rendered) {
+            crate::screencopy::serve(&mut self.screencopies, &mut renderer, &output, &elements);
+        }
 
         let queued = rendered
             && screen

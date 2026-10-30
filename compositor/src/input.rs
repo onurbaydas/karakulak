@@ -24,6 +24,8 @@ enum Action {
     Tile(Slot),
     MoveToScreen(i32),
     NextWindow,
+    /// Super+Space: the next keyboard layout.
+    NextLayout,
     /// Ctrl+Alt+F1..F12
     SwitchVt(i32),
     /// Ctrl+Alt+Backspace: leave, e.g. if something hangs during development.
@@ -85,6 +87,7 @@ impl State {
                                 (_, keysyms::KEY_minus | keysyms::KEY_KP_Subtract) => Some(Action::Zoom(Some(0.8))),
                                 (_, keysyms::KEY_0 | keysyms::KEY_KP_0) => Some(Action::Zoom(None)),
                                 (_, keysyms::KEY_slash | keysyms::KEY_question) => Some(Action::Help),
+                                (false, keysyms::KEY_space) => Some(Action::NextLayout),
                                 _ => None,
                             };
                             if let Some(action) = action {
@@ -111,6 +114,7 @@ impl State {
                     Some(Action::Tile(slot)) => self.tile_focused(slot),
                     Some(Action::MoveToScreen(step)) => self.move_focused_to_screen(step),
                     Some(Action::NextWindow) => self.cycle_windows(),
+                    Some(Action::NextLayout) => self.next_layout(),
                     None => {}
                 }
             }

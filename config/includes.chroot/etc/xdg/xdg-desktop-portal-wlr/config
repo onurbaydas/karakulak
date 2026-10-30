@@ -1,0 +1,4 @@
+# Screen sharing: no picker program yet, the portal shares the first screen.
+[screencast]
+chooser_type=none
+max_fps=30

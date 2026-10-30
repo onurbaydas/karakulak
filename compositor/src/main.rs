@@ -16,6 +16,7 @@ mod lock;
 mod overlay;
 mod pam;
 mod power;
+mod screencopy;
 mod screens;
 mod screenshot;
 mod state;
@@ -48,6 +49,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     unsafe {
         std::env::set_var("WAYLAND_DISPLAY", &state.socket_name);
         std::env::set_var("KARAKULAK_SOCKET", &control);
+    }
+    // Services started by D-Bus (the screen sharing portal) find our screens.
+    // Not when running as a window: that would point the desktop's own
+    // services at us.
+    if !nested {
+        let _ = std::process::Command::new("dbus-update-activation-environment")
+            .args(["--systemd", "WAYLAND_DISPLAY", "XDG_CURRENT_DESKTOP"])
+            .spawn();
     }
     if let Some(lock_events) = lock::init(&mut state) {
         event_loop.handle().insert_source(lock_events, |event, _, state| {

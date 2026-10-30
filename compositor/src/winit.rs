@@ -94,6 +94,13 @@ pub fn init_winit(
                     }
                 }
 
+                if crate::screencopy::wanted(&mut state.screencopies, &output, true) {
+                    let renderer = backend.renderer();
+                    if let Ok(elements) = state.space.render_elements_for_output(renderer, &output, 1.0) {
+                        crate::screencopy::serve(&mut state.screencopies, renderer, &output, &elements);
+                    }
+                }
+
                 state.space.elements().for_each(|window| {
                     window.send_frame(
                         &output,

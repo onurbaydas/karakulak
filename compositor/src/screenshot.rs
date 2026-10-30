@@ -14,7 +14,7 @@ use smithay::{
         },
     },
     output::Output,
-    utils::{Rectangle, Transform},
+    utils::{Physical, Rectangle, Size, Transform},
 };
 
 use crate::State;
@@ -41,6 +41,32 @@ where
     E: RenderElement<R>,
 {
     let err = |e: &dyn std::fmt::Display| e.to_string();
+    let (size, pixels) = render(renderer, output, elements)?;
+    let path = file_name(output);
+    let file = std::fs::File::create(&path).map_err(|e| err(&e))?;
+    let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), size.w as u32, size.h as u32);
+    encoder.set_color(png::ColorType::Rgba);
+    encoder.set_depth(png::BitDepth::Eight);
+    encoder
+        .write_header()
+        .and_then(|mut w| w.write_image_data(&pixels))
+        .map_err(|e| err(&e))?;
+    Ok(path)
+}
+
+/// Renders `elements` (front to back) for `output` into memory: the screen's
+/// size in pixels and its RGBA bytes, row by row from the top.
+pub fn render<R, E>(
+    renderer: &mut R,
+    output: &Output,
+    elements: &[E],
+) -> Result<(Size<i32, Physical>, Vec<u8>), String>
+where
+    R: Renderer + Offscreen<GlesRenderbuffer> + Bind<GlesRenderbuffer> + ExportMem,
+    R::TextureId: Texture,
+    E: RenderElement<R>,
+{
+    let err = |e: &dyn std::fmt::Display| e.to_string();
     let mode = output.current_mode().ok_or("screen has no mode")?;
     let size = mode.size;
     let buffer_size = size.to_logical(1).to_buffer(1, Transform::Normal);
@@ -55,17 +81,7 @@ where
         .copy_framebuffer(&framebuffer, Rectangle::from_size(buffer_size), Fourcc::Abgr8888)
         .map_err(|e| err(&e))?;
     let pixels = renderer.map_texture(&mapping).map_err(|e| err(&e))?.to_vec();
-
-    let path = file_name(output);
-    let file = std::fs::File::create(&path).map_err(|e| err(&e))?;
-    let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), size.w as u32, size.h as u32);
-    encoder.set_color(png::ColorType::Rgba);
-    encoder.set_depth(png::BitDepth::Eight);
-    encoder
-        .write_header()
-        .and_then(|mut w| w.write_image_data(&pixels))
-        .map_err(|e| err(&e))?;
-    Ok(path)
+    Ok((size, pixels))
 }
 
 /// ~/Resimler/Ekran görüntüsü 2026-10-30 14.05.33 eDP-1.png

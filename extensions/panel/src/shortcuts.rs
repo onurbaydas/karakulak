@@ -4,7 +4,7 @@ use karakulak_browser::t;
 use leptos::prelude::*;
 
 /// (keys, Turkish, English)
-const KARAKULAK: [(&str, &str, &str); 12] = [
+const KARAKULAK: [(&str, &str, &str); 14] = [
     ("Super + ←  /  →", "Pencereyi ekranın sol / sağ yarısına al", "Window to the left / right half"),
     ("Super + ↑", "Pencere ekranı kaplasın", "Window fills the screen"),
     ("Super + Shift + ←  /  →", "Pencereyi diğer ekrana taşı", "Move the window to another screen"),
@@ -12,6 +12,8 @@ const KARAKULAK: [(&str, &str, &str); 12] = [
     ("Super + +  /  −", "Büyüteç: yakınlaştır / uzaklaştır", "Magnifier: zoom in / out"),
     ("Super + 0", "Büyüteci kapat", "Magnifier off"),
     ("Super + /", "Bu sayfa", "This page"),
+    ("Super + Boşluk", "Diğer klavye düzenine geç", "Switch to the other keyboard layout"),
+    ("Orta tık", "Seçili metni yapıştır", "Paste the selected text"),
     ("Print Screen", "Ekran görüntüsü (Resimler klasörüne)", "Screenshot (to the Pictures folder)"),
     ("🔊 🔉 🔇", "Ses tuşları", "Volume keys"),
     ("☀", "Parlaklık tuşları", "Brightness keys"),

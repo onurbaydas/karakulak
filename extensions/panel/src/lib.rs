@@ -558,6 +558,79 @@ fn Vpns(on_error: WriteSignal<String>) -> impl IntoView {
     }
 }
 
+#[derive(Clone, Deserialize)]
+struct PowerProfile {
+    active: String,
+    available: Vec<String>,
+}
+
+const POWER_PROFILES: [(&str, &str, &str); 3] = [
+    ("power-saver", "Pil tasarrufu", "Power saver"),
+    ("balanced", "Dengeli", "Balanced"),
+    ("performance", "Performans", "Performance"),
+];
+
+#[component]
+fn PowerMode(on_error: WriteSignal<String>) -> impl IntoView {
+    let profile = RwSignal::new(None::<PowerProfile>);
+    // Without power-profiles-daemon there are simply no buttons.
+    spawn_local(async move {
+        if let Ok(p) = send::<PowerProfile>("power-profile", &[]).await {
+            profile.set(p);
+        }
+    });
+    move || {
+        profile.get().map(|p| {
+            let buttons = POWER_PROFILES
+                .iter()
+                .filter(|(id, ..)| p.available.iter().any(|a| a == id))
+                .map(|&(id, tr, en)| {
+                    view! {
+                        <button
+                            class:active={p.active == id}
+                            on:click={move |_| run::<PowerProfile>("set-power-profile", vec![("profile", id.into())], on_error, move |p| profile.set(p))}
+                        >
+                            {t(tr, en)}
+                        </button>
+                    }
+                })
+                .collect_view();
+            view! { <section class="modes" aria-label={t("Güç modu", "Power mode")}>{buttons}</section> }
+        })
+    }
+}
+
+#[derive(Clone, Deserialize)]
+struct Layouts {
+    layouts: Vec<String>,
+    current: usize,
+}
+
+/// Which keyboard layout is on, when there are two; a click switches.
+#[component]
+fn KeyboardLayout(on_error: WriteSignal<String>) -> impl IntoView {
+    let layouts = RwSignal::new(None::<Layouts>);
+    spawn_local(async move {
+        if let Ok(l) = send::<Layouts>("keyboard-layout", &[]).await {
+            layouts.set(l);
+        }
+    });
+    move || {
+        layouts.get().filter(|l| l.layouts.len() > 1).map(|l| {
+            let name = l.layouts.get(l.current).cloned().unwrap_or_default().to_uppercase();
+            view! {
+                <button
+                    class="layout"
+                    title={t("Klavye düzeni (Super+Boşluk)", "Keyboard layout (Super+Space)")}
+                    on:click={move |_| run::<Layouts>("next-layout", vec![], on_error, move |l| layouts.set(l))}
+                >
+                    {format!("⌨ {name}")}
+                </button>
+            }
+        })
+    }
+}
+
 #[derive(Deserialize)]
 struct Session {
     guest: bool,
@@ -591,8 +664,12 @@ fn Panel() -> impl IntoView {
     view! {
         <time id="clock">{move || time.get().0}</time>
         <p id="date">{move || time.get().1}</p>
-        <p id="battery">{battery}</p>
+        <div class="status">
+            <p id="battery">{battery}</p>
+            <KeyboardLayout on_error=set_error />
+        </div>
         <Show when=move || !guest.get()>
+            <PowerMode on_error=set_error />
             <Vpns on_error=set_error />
         </Show>
         <Volume on_error=set_error />

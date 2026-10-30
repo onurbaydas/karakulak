@@ -29,6 +29,8 @@ if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
 fi
 printf 'user_pref("extensions.webextensions.uuids", "{\\"panel@karakulak\\":\\"%s\\"}");\n' "$PANEL_UUID" \
 	> "$PROFILE/user.js"
+# Screen sharing goes through the portal and PipeWire.
+echo 'user_pref("media.webrtc.capture.allow-pipewire", true);' >> "$PROFILE/user.js"
 # High contrast from Settings: system colors instead of the pages' own.
 if [ -e "$HOME/.config/karakulak/high-contrast" ]; then
 	echo 'user_pref("browser.display.document_color_use", 2);' >> "$PROFILE/user.js"
@@ -50,6 +52,9 @@ fi
 export KARAKULAK_LOCK_COMMAND="firefox --kiosk --no-remote --name karakulak-lock --profile $LOCK_PROFILE moz-extension://$LOCK_UUID/lock.html"
 
 export XCURSOR_THEME=DMZ-White
+# Picks the portals in /usr/share/xdg-desktop-portal/karakulak-portals.conf
+# (screen sharing through xdg-desktop-portal-wlr).
+export XDG_CURRENT_DESKTOP=Karakulak
 # Extra screens get a window from the running Firefox (same profile).
 export KARAKULAK_NEW_WINDOW="firefox --profile $PROFILE --new-window"
 # Files opened from the file manager go to a new tab of the same Firefox.
