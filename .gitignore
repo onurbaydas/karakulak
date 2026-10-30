@@ -29,3 +29,6 @@ config/includes.chroot/usr/bin/karakulak-compositor
 extensions/target/
 extensions/*/ext/pkg/
 compositor/target-container/
+
+# Built by the crates/ddc tests
+crates/ddc/target/

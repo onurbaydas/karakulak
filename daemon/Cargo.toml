@@ -6,8 +6,8 @@ license = "GPL-3.0-only"
 description = "Karakulak system helper for Firefox extensions (native messaging host)"
 
 [dependencies]
+karakulak-ddc = { path = "../crates/ddc" }
 base64 = "0.22"
-ddc-hi = { version = "0.4.1", default-features = false, features = ["ddc-i2c"] }
 dirs = "6"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "bmp"] }
 libc = "0.2"

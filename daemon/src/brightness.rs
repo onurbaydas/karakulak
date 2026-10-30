@@ -3,7 +3,7 @@
 //! the laptop backlight (written via logind, no root needed) and DDC/CI for
 //! external monitors.
 
-use ddc_hi::{Ddc, Display};
+use karakulak_ddc::Monitor;
 use serde_json::{json, Value};
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
@@ -11,8 +11,6 @@ use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use zbus::blocking::{Connection, Proxy};
 
-/// VCP feature code for brightness in the DDC/CI standard.
-const VCP_BRIGHTNESS: u8 = 0x10;
 const BACKLIGHT_PREFIX: &str = "backlight:";
 
 fn backlight() -> Option<PathBuf> {
@@ -66,15 +64,15 @@ pub fn get() -> Result<Value, String> {
             "level": backlight_level(&dir)?,
         }));
     }
-    for mut display in Display::enumerate() {
+    for (name, mut monitor) in Monitor::all() {
         // Monitors without DDC/CI support are skipped.
-        let Ok(value) = display.handle.get_vcp_feature(VCP_BRIGHTNESS) else {
+        let Some((value, max)) = monitor.brightness() else {
             continue;
         };
         screens.push(json!({
-            "id": display.info.id,
-            "name": display.info.model_name.clone().unwrap_or_else(|| "Harici ekran".into()),
-            "level": f64::from(value.value()) / f64::from(value.maximum().max(1)),
+            "id": name,
+            "name": if name.is_empty() { "Harici ekran".into() } else { name.clone() },
+            "level": f64::from(value) / f64::from(max.max(1)),
         }));
     }
     Ok(Value::Array(screens))
@@ -88,20 +86,12 @@ pub fn set(id: &str, level: f64) -> Result<Value, String> {
         set_backlight(name, level)?;
         return get();
     }
-    let mut display = Display::enumerate()
-        .into_iter()
-        .find(|d| d.info.id == id)
-        .ok_or("screen not found")?;
-    let max = display
-        .handle
-        .get_vcp_feature(VCP_BRIGHTNESS)
-        .map_err(|e| e.to_string())?
-        .maximum();
+    let mut monitor = Monitor::find(None, id).ok_or("screen not found")?;
+    let (_, max) = monitor.brightness().ok_or("the monitor does not answer")?;
     let value = (level.clamp(0.0, 1.0) * f64::from(max)).round() as u16;
-    display
-        .handle
-        .set_vcp_feature(VCP_BRIGHTNESS, value)
-        .map_err(|e| e.to_string())?;
+    if !monitor.set_brightness(value) {
+        return Err("the monitor refused the brightness".into());
+    }
     get()
 }
 

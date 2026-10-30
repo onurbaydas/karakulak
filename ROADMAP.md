@@ -130,8 +130,8 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 
 ## v0.9 — Sürüme hazırlık
 
-- [ ] Güvenlik denetimi: bağımlılık taraması (cargo audit) her derlemede, karakulakd ve
-  yetki kurallarının gözden geçirilmesi
+- [x] Güvenlik denetimi: bağımlılık taraması (cargo audit) her derlemede, karakulakd ve
+  yetki kurallarının gözden geçirilmesi (docs/security-review.md)
 - [ ] Eklenti imzalamayı hızlandırma: kaynak kodu Mozilla'ya gönderme
 - [ ] Karakulak'ın kendi APT deposu: kurulu sistemler güncellemeleri alır
 - [ ] GitHub Releases: ISO, SHA256, imza, değişiklik listesi

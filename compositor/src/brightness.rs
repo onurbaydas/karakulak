@@ -13,7 +13,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use ddc_hi::{Ddc, Display};
+use karakulak_ddc::Monitor;
 use serde_json::{Value, json};
 use smithay::{
     backend::renderer::element::{
@@ -31,8 +31,6 @@ use crate::State;
 
 /// Darkest allowed level: a black screen looks like a dead machine.
 const MIN_LEVEL: f64 = 0.1;
-/// VCP feature code for brightness in the DDC/CI standard.
-const VCP_BRIGHTNESS: u8 = 0x10;
 /// Night light: how much of each color channel is kept.
 pub const NIGHT_CHANNELS: [f64; 3] = [1.0, 0.82, 0.62];
 
@@ -154,11 +152,9 @@ fn set_backlight(dir: &std::path::Path, level: f64) {
     }
 }
 
-/// The DDC/CI display whose model matches this monitor.
-fn ddc_display(model: &str) -> Option<Display> {
-    Display::enumerate()
-        .into_iter()
-        .find(|d| d.info.model_name.as_deref() == Some(model))
+/// The DDC/CI channel of this monitor.
+fn ddc_monitor(connector: &str, model: &str) -> Option<Monitor> {
+    Monitor::find(Some(connector), model)
 }
 
 impl State {
@@ -198,9 +194,9 @@ impl State {
         let model = output.physical_properties().model;
         let reports = self.brightness.reports.clone();
         std::thread::spawn(move || {
-            let report = match ddc_display(&model).map(|mut d| d.handle.get_vcp_feature(VCP_BRIGHTNESS)) {
-                Some(Ok(value)) => Report::DdcLevel(name, f64::from(value.value()) / f64::from(value.maximum().max(1))),
-                _ => Report::DdcIgnored(name),
+            let report = match ddc_monitor(&name, &model).and_then(|mut m| m.brightness()) {
+                Some((value, max)) => Report::DdcLevel(name, f64::from(value) / f64::from(max.max(1))),
+                None => Report::DdcIgnored(name),
             };
             if let Some(reports) = reports {
                 let _ = reports.send(report);
@@ -242,15 +238,13 @@ impl State {
                 let name = output.name();
                 let model = output.physical_properties().model;
                 std::thread::spawn(move || {
-                    let Some(mut display) = ddc_display(&model) else { return };
-                    let Ok(max) = display.handle.get_vcp_feature(VCP_BRIGHTNESS).map(|v| v.maximum()) else {
-                        return;
-                    };
+                    let Some(mut monitor) = ddc_monitor(&name, &model) else { return };
+                    let Some((_, max)) = monitor.brightness() else { return };
                     let value = (level * f64::from(max)).round() as u16;
-                    let _ = display.handle.set_vcp_feature(VCP_BRIGHTNESS, value);
+                    monitor.set_brightness(value);
                     std::thread::sleep(std::time::Duration::from_millis(200));
-                    let read_back = display.handle.get_vcp_feature(VCP_BRIGHTNESS).map(|v| v.value());
-                    if read_back.ok() != Some(value)
+                    let read_back = monitor.brightness().map(|(v, _)| v);
+                    if read_back != Some(value)
                         && let Some(reports) = reports
                     {
                         let _ = reports.send(Report::DdcIgnored(name));
