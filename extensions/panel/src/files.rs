@@ -37,6 +37,11 @@ struct Entry {
 }
 
 #[derive(Clone, Deserialize)]
+struct Thumbnail {
+    url: String,
+}
+
+#[derive(Clone, Deserialize)]
 struct Listing {
     path: String,
     parent: Option<String>,
@@ -195,6 +200,42 @@ pub fn Files() -> impl IntoView {
         reload();
     };
 
+    // Search below the current folder; Enter in the box starts it.
+    let query = RwSignal::new(String::new());
+    let searching = RwSignal::new(false);
+    let search = move |ev: leptos::ev::SubmitEvent| {
+        ev.prevent_default();
+        let text = query.get_untracked();
+        if text.trim().is_empty() {
+            return;
+        }
+        let args = vec![("path", current().into()), ("query", text.into())];
+        run::<Listing>("files-search", args, set_error, move |l| {
+            selected.set(Vec::new());
+            searching.set(true);
+            listing.set(l);
+        });
+    };
+    let end_search = move |_| {
+        query.set(String::new());
+        searching.set(false);
+        reload();
+    };
+
+    // A picture of the selected image.
+    let preview = RwSignal::new(None::<String>);
+    Effect::new(move || {
+        let selection = selected.get();
+        preview.set(None);
+        let [path] = selection.as_slice() else { return };
+        let lower = path.to_lowercase();
+        if [".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"].iter().any(|ext| lower.ends_with(ext)) {
+            run::<Thumbnail>("files-thumbnail", vec![("path", path.clone().into())], set_error, move |t| {
+                preview.set(t.map(|t| t.url));
+            });
+        }
+    });
+
     let rows = move || {
         listing.get().map(|l| {
             l.entries
@@ -294,9 +335,20 @@ pub fn Files() -> impl IntoView {
             </nav>
             <main>
                 <header class="toolbar">
-                    <button title="Geri" prop:disabled=move || history.get().is_empty() on:click=back>"←"</button>
+                    <button title={t("Geri", "Back")} prop:disabled=move || history.get().is_empty() on:click=back>"←"</button>
                     <button title={t("Üst klasör", "Parent folder")} on:click=up>"↑"</button>
-                    <span class="path">{move || listing.get().map(|l| l.path).unwrap_or_default()}</span>
+                    <span class="path">
+                        {move || {
+                            let path = listing.get().map(|l| l.path).unwrap_or_default();
+                            if searching.get() { format!("{path}: “{}”", query.get()) } else { path }
+                        }}
+                    </span>
+                    <form class="search" on:submit=search>
+                        <input type="search" placeholder={t("Ara", "Search")} bind:value=query />
+                    </form>
+                    <Show when=move || searching.get()>
+                        <button on:click=end_search>{t("Aramayı bitir", "End search")}</button>
+                    </Show>
                     <button on:click=new_folder>{t("Yeni klasör", "New folder")}</button>
                     <button prop:disabled=move || selected.get().len() != 1 on:click=rename>{t("Yeniden adlandır", "Rename")}</button>
                     <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(false)>{t("Kopyala", "Copy")}</button>
@@ -315,6 +367,11 @@ pub fn Files() -> impl IntoView {
                     </thead>
                     <tbody>{rows}</tbody>
                 </table>
+                <Show when=move || preview.get().is_some()>
+                    <aside class="preview">
+                        <img src=move || preview.get().unwrap_or_default() alt="" />
+                    </aside>
+                </Show>
                 <Show when=move || listing.get().is_some_and(|l| l.truncated)>
                     <p class="note">{t("Bu klasörde çok fazla dosya var, ilk 3000 tanesi gösteriliyor.", "This folder has too many files; the first 3000 are shown.")}</p>
                 </Show>

@@ -214,3 +214,69 @@ mod tests {
         fs::remove_dir_all(&root).unwrap();
     }
 }
+
+/// Most results a search returns.
+const MAX_RESULTS: usize = 500;
+/// How deep a search goes below the starting folder.
+const MAX_DEPTH: usize = 12;
+
+/// Files and folders below `path` whose name contains `query` (any case),
+/// skipping hidden ones: `{"entries": [...], "truncated"}` like `list`.
+pub fn search(path: &str, query: &str) -> Result<Value, String> {
+    let query = query.trim().to_lowercase();
+    if query.is_empty() {
+        return Err("empty search".into());
+    }
+    let mut found = Vec::new();
+    let mut folders = vec![(PathBuf::from(path), 0)];
+    while let Some((folder, depth)) = folders.pop() {
+        let Ok(entries) = fs::read_dir(&folder) else { continue };
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.starts_with('.') {
+                continue;
+            }
+            // Not following links keeps a search from looping.
+            let Ok(meta) = entry.metadata() else { continue };
+            if meta.is_dir() && depth < MAX_DEPTH {
+                folders.push((entry.path(), depth + 1));
+            }
+            if name.to_lowercase().contains(&query) {
+                let modified = meta
+                    .modified()
+                    .ok()
+                    .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+                    .map(|d| d.as_secs());
+                found.push(json!({
+                    "name": name,
+                    "path": entry.path(),
+                    "dir": meta.is_dir(),
+                    "size": meta.len(),
+                    "modified": modified,
+                }));
+                if found.len() > MAX_RESULTS {
+                    found.truncate(MAX_RESULTS);
+                    return Ok(json!({ "path": path, "parent": null, "entries": found, "truncated": true }));
+                }
+            }
+        }
+    }
+    Ok(json!({ "path": path, "parent": null, "entries": found, "truncated": false }))
+}
+
+/// A small JPEG of an image file, as a data URL for the page.
+pub fn thumbnail(path: &str) -> Result<Value, String> {
+    const SIZE: u32 = 480;
+    // Huge files would take long to decode for a preview.
+    if fs::metadata(path).map_err(err)?.len() > 50 * 1024 * 1024 {
+        return Err("too large to preview".into());
+    }
+    let image = image::open(path).map_err(err)?.thumbnail(SIZE, SIZE).to_rgb8();
+    let mut jpeg = Vec::new();
+    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut jpeg, 80)
+        .encode_image(&image)
+        .map_err(err)?;
+    use base64::Engine;
+    let data = base64::engine::general_purpose::STANDARD.encode(jpeg);
+    Ok(json!({ "url": format!("data:image/jpeg;base64,{data}") }))
+}

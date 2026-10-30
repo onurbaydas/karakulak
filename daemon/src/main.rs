@@ -64,6 +64,8 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "files-places" => Ok(files::places()),
         "files-list" => files::list(arg("path"), msg["hidden"].as_bool().unwrap_or(false)),
         "files-open" => files::open(arg("path")),
+        "files-search" => files::search(arg("path"), arg("query")),
+        "files-thumbnail" => files::thumbnail(arg("path")),
         "files-mkdir" => files::mkdir(arg("path"), arg("name")),
         "files-rename" => files::rename(arg("path"), arg("name")),
         "files-copy" => files::transfer(&strings(&msg["paths"]), arg("to"), true),

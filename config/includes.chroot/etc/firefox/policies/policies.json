@@ -27,6 +27,29 @@
         "installation_mode": "force_installed",
         "install_url": "file:///usr/share/karakulak/extensions/lock.xpi"
       }
+    },
+    "SkipTermsOfUse": true,
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": "",
+    "DisableProfileImport": true,
+    "NoDefaultBookmarks": true,
+    "DisplayBookmarksToolbar": "never",
+    "DisablePocket": true,
+    "UserMessaging": {
+      "WhatsNew": false,
+      "ExtensionRecommendations": false,
+      "FeatureRecommendations": false,
+      "UrlbarInterventions": false,
+      "SkipOnboarding": true,
+      "MoreFromMozilla": false,
+      "FirefoxLabs": false,
+      "Locked": true
+    },
+    "FirefoxHome": {
+      "SponsoredTopSites": false,
+      "SponsoredPocket": false,
+      "Pocket": false,
+      "Locked": true
     }
   }
 }

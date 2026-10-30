@@ -149,3 +149,31 @@ td.date {
   flex: 1;
   text-align: left;
 }
+
+.search input {
+  width: 10rem;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+}
+
+.preview {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.5rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.25);
+}
+
+.preview img {
+  display: block;
+  max-width: 22rem;
+  max-height: 22rem;
+  border-radius: 0.4rem;
+}
