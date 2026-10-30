@@ -1,0 +1,16 @@
+#!/bin/sh
+# For the boot test (kernel option karakulak.tour): opens each panel page in a
+# new tab and says so in the journal, so the test can take a screenshot of it.
+#
+# Usage: karakulak-tour <firefox profile> <panel uuid>
+
+# Leave time for the test's screenshot of the first screen.
+sleep 60
+for page in newtab popup files terminal tasks settings help shortcuts report; do
+	firefox --profile "$1" --new-tab "moz-extension://$2/$page.html"
+	sleep 10
+	logger -t karakulak-tour "showing $page"
+	# The test looks at the log every few seconds.
+	sleep 15
+done
+logger -t karakulak-tour "done"

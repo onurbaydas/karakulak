@@ -1,6 +1,7 @@
 #!/bin/sh
 # Boots the ISO in QEMU without a window, waits for the session, and takes a
-# screenshot. Fails if auto-login never happens or the screen stays blank.
+# screenshot of the first screen and of every panel page. Fails if auto-login
+# never happens or the first screen stays blank.
 #
 # Usage: tests/boot-test.sh karakulak.iso [output-dir]
 # Needs: qemu-system-x86_64, xorriso, socat, python3
@@ -22,7 +23,7 @@ kvm=""
 # shellcheck disable=SC2086 # $kvm holds several arguments
 qemu-system-x86_64 $kvm -m 4G -smp 2 \
 	-kernel "$work/vmlinuz" -initrd "$work/initrd.img" \
-	-append "boot=live components username=karakulak hostname=karakulak console=ttyS0 systemd.journald.forward_to_console=1" \
+	-append "boot=live components username=karakulak hostname=karakulak console=ttyS0 systemd.journald.forward_to_console=1 karakulak.tour" \
 	-cdrom "$iso" \
 	-device virtio-vga -display none \
 	-nic user,model=virtio-net-pci \
@@ -73,8 +74,18 @@ wait_for 120 "the compositor to light up a screen" "screen connected"
 # signed extension, native messaging and karakulakd all work.
 expect 120 "Karakulak's panel extension talking to karakulakd" "karakulakd: watching system events"
 
+screenshot() {
+	echo "screendump $work/$1.ppm" | socat - UNIX-CONNECT:"$work/monitor.sock" >/dev/null
+	sleep 2
+	python3 "$(dirname "$0")/check_screen.py" "$work/$1.ppm" "$out/$1.png"
+}
+
 echo "Giving Firefox time to settle..."
 sleep 30
-echo "screendump $work/screen.ppm" | socat - UNIX-CONNECT:"$work/monitor.sock" >/dev/null
-sleep 2
-python3 "$(dirname "$0")/check_screen.py" "$work/screen.ppm" "$out/screen.png"
+screenshot screen
+
+# karakulak-tour opens the panel pages one by one; an empty page only warns.
+for page in newtab popup files terminal tasks settings help shortcuts report; do
+	wait_for 120 "the $page page" "karakulak-tour.*showing $page"
+	screenshot "page-$page" || echo "WARNING: the $page page looks empty"
+done

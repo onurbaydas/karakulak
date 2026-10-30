@@ -38,7 +38,7 @@ eklentiler ona komut gönderir.
   (boş profilli kiosk Firefox) gösterir. Şifreyi ekran yöneticisi PAM ile
   kontrol eder.
 - [x] Kapağı kapatınca uyku (systemd-logind bunu varsayılan olarak yapıyor)
-- [ ] Kendi Rust ekran yöneticimiz (Smithay), cage'in yerine. Bunlar için şart:
+- [x] Kendi Rust ekran yöneticimiz (Smithay), cage'in yerine. Bunlar için şart:
   - [x] Kilit ekranı (yukarıda)
   - [x] Temel: Firefox'u ekranı kaplayacak şekilde açar (şimdilik başka bir
     masaüstünün içinde pencere olarak, `./dev.sh session`)
@@ -47,7 +47,7 @@ eklentiler ona komut gönderir.
     ekran kartı), ISO'da cage'in yerini aldı
   - [x] Her ekranda ayrı Firefox penceresi (boş ekran için Firefox'tan yeni
     pencere istenir)
-  - [ ] Parlaklık: önce donanım, olmazsa ekran kartının renk tablosu (gamma)
+  - [x] Parlaklık: önce donanım, olmazsa ekran kartının renk tablosu (gamma)
 
 Bitti sayılır: Panelden Wi-Fi'ye bağlanıp bilgisayarı kapatabiliyorsun. Uykudan
 dönünce şifre soruluyor. İki monitörde her ekranda ayrı Firefox açılıyor.
@@ -91,7 +91,7 @@ Bitti sayılır: Terminal açmadan sistemi güncelleyip ayarlarını değiştire
 ## v0.6 — Günlük kullanım ve test
 
 - [x] `./vm.sh`: ISO'yu tek komutla sanal makinede açar
-- [ ] GitHub'da her ISO için otomatik açılış testi (ekran görüntüsüyle)
+- [x] GitHub'da her ISO için otomatik açılış testi (ekran görüntüsüyle)
 - [x] Klavyedeki ses ve parlaklık tuşları
 - [x] Touchpad: dokunarak tıklama, doğal kaydırma
 - [x] Boşta kalınca ekran kararır ve kilitlenir (video oynarken değil); ekranı gerçekten
@@ -147,7 +147,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Paket kurulum testi CI'da: dosya çakışmaları ISO'dan önce, dakikalar içinde yakalanır
 - [x] Açılış testi panel eklentisinin karakulakd ile konuştuğunu da kontrol eder
   (yeni panel imzalanana kadar uyarı, sonra zorunlu)
-- [ ] Bütün sayfaların ekran görüntüleri her derlemede
+- [x] Bütün sayfaların ekran görüntüleri her derlemede (v0.9.3)
 - [x] Eskiyen araçların güncellenmesi (GitHub eylemleri, wasm-pack)
 - [x] CHANGELOG.md
 
@@ -160,6 +160,11 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Güç modu: Performans / Dengeli / Pil tasarrufu (power-profiles-daemon)
 - [x] İki klavye düzeni: Super+Boşluk ile geçilir, panelde hangisinin açık olduğu görünür
 - [x] zbus 6'ya geçiş (#3)
+
+## v0.9.3 — Ekran görüntüleri
+
+- [x] Açılış testi panelin bütün sayfalarını sırayla açar ve her birinin ekran
+  görüntüsünü alır (derlemenin `boot-test` dosyalarında)
 
 ## v1.0 — İlk sürüm
 

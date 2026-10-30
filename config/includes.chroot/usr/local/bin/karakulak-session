@@ -63,5 +63,9 @@ export KARAKULAK_OPEN="firefox --profile $PROFILE --new-tab"
 export KARAKULAK_GUEST_COMMAND="karakulak-guest {profile}"
 # Super+/ shows the keyboard shortcuts.
 export KARAKULAK_HELP_COMMAND="firefox --profile $PROFILE --new-tab moz-extension://$PANEL_UUID/shortcuts.html"
+# The boot test asks for a screenshot of every page.
+if grep -qw karakulak.tour /proc/cmdline; then
+	karakulak-tour "$PROFILE" "$PANEL_UUID" &
+fi
 # Logs go to the journal: journalctl -t karakulak-compositor
 exec systemd-cat --identifier=karakulak-compositor karakulak-compositor -- firefox --profile "$PROFILE"

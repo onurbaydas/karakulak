@@ -3,6 +3,12 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
+## 0.9.3: Screenshots
+
+- The boot test opens every panel page (new tab, panel, files, terminal,
+  tasks, settings, help, shortcuts, problem report) and keeps a screenshot of
+  each in the build's `boot-test` files.
+
 ## 0.9.2: Everyday use
 
 - Screen sharing on video call sites (Meet, Zoom, Discord) through
