@@ -3,21 +3,21 @@
 
 use serde_json::{Value, json};
 use std::collections::HashMap;
-use zbus::blocking::{Connection, Proxy};
-use zbus::zvariant::{OwnedObjectPath, OwnedValue, Value as Variant};
+use karakulak_dbus::{Connection, Proxy};
+use karakulak_dbus::{OwnedObjectPath, OwnedVariant, Variant};
 
 const UDISKS: &str = "org.freedesktop.UDisks2";
 const BLOCK: &str = "org.freedesktop.UDisks2.Block";
 const FILESYSTEM: &str = "org.freedesktop.UDisks2.Filesystem";
 const DRIVE: &str = "org.freedesktop.UDisks2.Drive";
 
-type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedVariant>>>;
 
 fn err(e: impl std::fmt::Display) -> String {
     e.to_string()
 }
 
-fn prop<T: TryFrom<OwnedValue>>(props: &HashMap<String, OwnedValue>, name: &str) -> Option<T> {
+fn prop<T: TryFrom<OwnedVariant>>(props: &HashMap<String, OwnedVariant>, name: &str) -> Option<T> {
     props.get(name)?.try_clone().ok()?.try_into().ok()
 }
 
@@ -28,7 +28,7 @@ fn objects(bus: &Connection) -> Result<Objects, String> {
 }
 
 /// udisks keeps mount points as NUL-terminated byte strings.
-fn mount_points(props: &HashMap<String, OwnedValue>) -> Vec<String> {
+fn mount_points(props: &HashMap<String, OwnedVariant>) -> Vec<String> {
     prop::<Vec<Vec<u8>>>(props, "MountPoints")
         .unwrap_or_default()
         .into_iter()

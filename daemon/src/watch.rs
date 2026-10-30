@@ -9,8 +9,8 @@
 use serde_json::json;
 use std::collections::HashMap;
 use std::time::Duration;
-use zbus::blocking::{Connection, Proxy};
-use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+use karakulak_dbus::{Connection, Proxy};
+use karakulak_dbus::{OwnedObjectPath, OwnedVariant};
 
 const BATTERY_LOW: u8 = 15;
 
@@ -19,11 +19,11 @@ fn emit(event: serde_json::Value) -> bool {
 }
 
 /// New removable filesystems, from udisks2.
-fn watch_usb() -> zbus::Result<()> {
+fn watch_usb() -> karakulak_dbus::Result<()> {
     let bus = Connection::system()?;
     let manager = Proxy::new(&bus, "org.freedesktop.UDisks2", "/org/freedesktop/UDisks2", "org.freedesktop.DBus.ObjectManager")?;
     for signal in manager.receive_signal("InterfacesAdded")? {
-        type Interfaces = HashMap<String, HashMap<String, OwnedValue>>;
+        type Interfaces = HashMap<String, HashMap<String, OwnedVariant>>;
         let (_path, interfaces): (OwnedObjectPath, Interfaces) = signal.body().deserialize()?;
         let (Some(block), Some(_)) = (interfaces.get("org.freedesktop.UDisks2.Block"), interfaces.get("org.freedesktop.UDisks2.Filesystem"))
         else {
@@ -47,7 +47,7 @@ fn watch_usb() -> zbus::Result<()> {
 }
 
 /// The "Update now" service finishing.
-fn watch_updates() -> zbus::Result<()> {
+fn watch_updates() -> karakulak_dbus::Result<()> {
     let bus = Connection::system()?;
     let systemd = Proxy::new(&bus, "org.freedesktop.systemd1", "/org/freedesktop/systemd1", "org.freedesktop.systemd1.Manager")?;
     let unit: OwnedObjectPath = systemd.call("LoadUnit", &("karakulak-update.service",))?;

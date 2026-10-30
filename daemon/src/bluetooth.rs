@@ -5,14 +5,14 @@
 
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use zbus::blocking::{Connection, Proxy};
-use zbus::zvariant::{OwnedObjectPath, OwnedValue, Value as Variant};
+use karakulak_dbus::{Connection, Proxy};
+use karakulak_dbus::{OwnedObjectPath, OwnedVariant, Variant};
 
 const BLUEZ: &str = "org.bluez";
 const ADAPTER: &str = "org.bluez.Adapter1";
 const DEVICE: &str = "org.bluez.Device1";
 
-type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedVariant>>>;
 
 fn err(e: impl std::fmt::Display) -> String {
     e.to_string()
@@ -24,11 +24,11 @@ fn objects(bus: &Connection) -> Result<Objects, String> {
         .map_err(err)
 }
 
-fn prop<T: TryFrom<OwnedValue>>(props: &HashMap<String, OwnedValue>, name: &str) -> Option<T> {
+fn prop<T: TryFrom<OwnedVariant>>(props: &HashMap<String, OwnedVariant>, name: &str) -> Option<T> {
     props.get(name)?.try_clone().ok()?.try_into().ok()
 }
 
-fn adapter(objects: &Objects) -> Option<(&OwnedObjectPath, &HashMap<String, OwnedValue>)> {
+fn adapter(objects: &Objects) -> Option<(&OwnedObjectPath, &HashMap<String, OwnedVariant>)> {
     objects
         .iter()
         .find_map(|(path, interfaces)| interfaces.get(ADAPTER).map(|props| (path, props)))
@@ -119,7 +119,7 @@ fn random_pin() -> String {
 /// panel, so confirmations are accepted; the code is always shown.
 struct Agent;
 
-#[zbus::interface(name = "org.bluez.Agent1")]
+#[karakulak_dbus::interface(name = "org.bluez.Agent1", crate = "karakulak_dbus::zbus")]
 impl Agent {
     fn release(&self) {}
 
@@ -135,8 +135,8 @@ impl Agent {
 
     /// A code shown on the other device that we would have to type in: not
     /// supported, as nothing here can ask for it during pairing.
-    fn request_passkey(&self, _device: OwnedObjectPath) -> zbus::fdo::Result<u32> {
-        Err(zbus::fdo::Error::Failed("entering a code is not supported".into()))
+    fn request_passkey(&self, _device: OwnedObjectPath) -> karakulak_dbus::fdo::Result<u32> {
+        Err(karakulak_dbus::fdo::Error::Failed("entering a code is not supported".into()))
     }
 
     fn display_passkey(&self, _device: OwnedObjectPath, passkey: u32, _entered: u16) {

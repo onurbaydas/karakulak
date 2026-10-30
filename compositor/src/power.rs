@@ -130,9 +130,9 @@ fn local_hour() -> i32 {
 }
 
 fn suspend() {
-    let call = || -> zbus::Result<()> {
-        let bus = zbus::blocking::Connection::system()?;
-        let manager = zbus::blocking::Proxy::new(
+    let call = || -> karakulak_dbus::Result<()> {
+        let bus = karakulak_dbus::Connection::system()?;
+        let manager = karakulak_dbus::Proxy::new(
             &bus,
             "org.freedesktop.login1",
             "/org/freedesktop/login1",

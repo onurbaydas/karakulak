@@ -153,12 +153,13 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 
 ## v0.9.2 — Günlük kullanım 2
 
-- [ ] Ekran paylaşımı (Meet, Zoom, Discord): ekran yöneticisi ekranı PipeWire'a
-  verir, Firefox xdg-desktop-portal üzerinden alır
-- [ ] Orta tıkla yapıştırma (seçili metin)
-- [ ] Güç modu: Performans / Dengeli / Pil tasarrufu (power-profiles-daemon)
-- [ ] İki klavye düzeni: Super+Boşluk ile geçiş, panelde hangi düzende olduğun
-- [ ] zbus 6'ya geçiş (#3)
+- [x] Ekran paylaşımı (Meet, Zoom, Discord): ekran yöneticisi görüntüyü
+  xdg-desktop-portal'a verir, Firefox oradan alır (ADR 0013). Şimdilik ilk ekran
+  paylaşılıyor.
+- [x] Orta tıkla yapıştırma (seçili metin)
+- [x] Güç modu: Performans / Dengeli / Pil tasarrufu (power-profiles-daemon)
+- [x] İki klavye düzeni: Super+Boşluk ile geçilir, panelde hangisinin açık olduğu görünür
+- [x] zbus 6'ya geçiş (#3)
 
 ## v1.0 — İlk sürüm
 

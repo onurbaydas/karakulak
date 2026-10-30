@@ -43,7 +43,7 @@ jobs:
           tool: cargo-audit
       - name: Audit
         run: |
-          for dir in daemon compositor extensions crates/ddc; do
+          for dir in daemon compositor extensions crates/ddc crates/dbus; do
             echo "== $dir"
             (cd "$dir" && cargo audit)
           done

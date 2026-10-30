@@ -3,6 +3,16 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
+## 0.9.2: Everyday use
+
+- Screen sharing on video call sites (Meet, Zoom, Discord) through
+  xdg-desktop-portal-wlr; the first screen is shared for now.
+- Middle-click pastes the selected text.
+- Power mode in the panel: Performance, Balanced, Power saver.
+- A second keyboard layout in Settings; Super+Space switches, the panel shows
+  which one is on.
+- D-Bus through zbus 6 (zbus 5's parts were unmaintained).
+
 ## 0.9.1
 
 - CI installs the package on Debian before building the ISO, so clashing files

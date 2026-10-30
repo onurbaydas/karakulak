@@ -5,7 +5,7 @@
 
 use serde_json::{Value, json};
 use std::process::Command;
-use zbus::blocking::{Connection, Proxy};
+use karakulak_dbus::{Connection, Proxy};
 
 const UPDATE_UNIT: &str = "karakulak-update.service";
 const FIREWALL_UNIT: &str = "nftables.service";
@@ -87,7 +87,7 @@ pub fn set_timezone(zone: &str) -> Result<Value, String> {
 
 /// ActiveState of a unit ("active", "activating", "inactive", "failed").
 fn unit_state(bus: &Connection, unit: &str) -> Result<String, String> {
-    let path: zbus::zvariant::OwnedObjectPath = systemd(bus)?.call("LoadUnit", &(unit,)).map_err(err)?;
+    let path: karakulak_dbus::OwnedObjectPath = systemd(bus)?.call("LoadUnit", &(unit,)).map_err(err)?;
     let unit = proxy(bus, "org.freedesktop.systemd1", path.as_str(), "org.freedesktop.systemd1.Unit")?;
     unit.get_property("ActiveState").map_err(err)
 }
@@ -110,7 +110,7 @@ pub fn updates() -> Result<Value, String> {
 /// Starts the update service (apt-get update && full-upgrade, as root).
 pub fn update_now() -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
-    let _: zbus::zvariant::OwnedObjectPath = systemd(&bus)?
+    let _: karakulak_dbus::OwnedObjectPath = systemd(&bus)?
         .call("StartUnit", &(UPDATE_UNIT, "replace"))
         .map_err(err)?;
     updates()
@@ -126,7 +126,7 @@ pub fn firewall() -> Result<Value, String> {
 pub fn set_firewall(on: bool) -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
     let method = if on { "StartUnit" } else { "StopUnit" };
-    let _: zbus::zvariant::OwnedObjectPath = systemd(&bus)?
+    let _: karakulak_dbus::OwnedObjectPath = systemd(&bus)?
         .call(method, &(FIREWALL_UNIT, "replace"))
         .map_err(err)?;
     std::thread::sleep(std::time::Duration::from_millis(500));
@@ -150,7 +150,7 @@ pub fn tor() -> Result<Value, String> {
 pub fn set_tor(on: bool) -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
     let method = if on { "StartUnit" } else { "StopUnit" };
-    let _: zbus::zvariant::OwnedObjectPath = systemd(&bus)?.call(method, &(TOR_UNIT, "replace")).map_err(err)?;
+    let _: karakulak_dbus::OwnedObjectPath = systemd(&bus)?.call(method, &(TOR_UNIT, "replace")).map_err(err)?;
     std::thread::sleep(std::time::Duration::from_millis(500));
     tor()
 }

@@ -136,9 +136,9 @@ fn set_backlight(dir: &std::path::Path, level: f64) {
     let Some(max) = read_number(dir.join("max_brightness")) else { return };
     let name = dir.file_name().unwrap_or_default().to_string_lossy().into_owned();
     let value = (level * max).round() as u32;
-    let call = || -> zbus::Result<()> {
-        let bus = zbus::blocking::Connection::system()?;
-        let session = zbus::blocking::Proxy::new(
+    let call = || -> karakulak_dbus::Result<()> {
+        let bus = karakulak_dbus::Connection::system()?;
+        let session = karakulak_dbus::Proxy::new(
             &bus,
             "org.freedesktop.login1",
             "/org/freedesktop/login1/session/auto",

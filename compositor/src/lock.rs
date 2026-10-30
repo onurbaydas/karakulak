@@ -80,15 +80,15 @@ fn spawn_lock_window() {
 /// A logind "delay" inhibitor holds sleep back until the lock is drawn.
 fn watch_sleep(sender: channel::Sender<LockEvent>) {
     std::thread::spawn(move || {
-        let watch = || -> zbus::Result<()> {
-            let bus = zbus::blocking::Connection::system()?;
-            let manager = zbus::blocking::Proxy::new(
+        let watch = || -> karakulak_dbus::Result<()> {
+            let bus = karakulak_dbus::Connection::system()?;
+            let manager = karakulak_dbus::Proxy::new(
                 &bus,
                 "org.freedesktop.login1",
                 "/org/freedesktop/login1",
                 "org.freedesktop.login1.Manager",
             )?;
-            let inhibit = || -> zbus::Result<zbus::zvariant::OwnedFd> {
+            let inhibit = || -> karakulak_dbus::Result<karakulak_dbus::OwnedFd> {
                 manager.call("Inhibit", &("sleep", "Karakulak", "Lock the screen before sleeping", "delay"))
             };
             let mut inhibitor = Some(inhibit()?);

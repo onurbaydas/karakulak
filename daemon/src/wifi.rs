@@ -3,8 +3,8 @@
 
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
-use zbus::blocking::{Connection, Proxy};
-use zbus::zvariant::{OwnedObjectPath, OwnedValue, Value as Variant};
+use karakulak_dbus::{Connection, Proxy};
+use karakulak_dbus::{OwnedObjectPath, OwnedVariant, Variant};
 
 const NM: &str = "org.freedesktop.NetworkManager";
 const NM_PATH: &str = "/org/freedesktop/NetworkManager";
@@ -16,7 +16,7 @@ const SETTINGS: &str = "org.freedesktop.NetworkManager.Settings";
 const CONNECTION: &str = "org.freedesktop.NetworkManager.Settings.Connection";
 const DEVICE_TYPE_WIFI: u32 = 2;
 
-type ConnectionSettings = HashMap<String, HashMap<String, OwnedValue>>;
+type ConnectionSettings = HashMap<String, HashMap<String, OwnedVariant>>;
 
 fn err(e: impl std::fmt::Display) -> String {
     e.to_string()

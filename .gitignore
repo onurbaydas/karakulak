@@ -32,3 +32,4 @@ compositor/target-container/
 
 # Built by the crates/ddc tests
 crates/ddc/target/
+crates/dbus/target/

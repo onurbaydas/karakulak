@@ -8,9 +8,9 @@ use crate::State;
 
 /// `(layout, variant)` as set in localed, e.g. `("tr", "f")`.
 pub fn system_layout() -> (String, String) {
-    let read = || -> zbus::Result<(String, String)> {
-        let bus = zbus::blocking::Connection::system()?;
-        let locale = zbus::blocking::Proxy::new(
+    let read = || -> karakulak_dbus::Result<(String, String)> {
+        let bus = karakulak_dbus::Connection::system()?;
+        let locale = karakulak_dbus::Proxy::new(
             &bus,
             "org.freedesktop.locale1",
             "/org/freedesktop/locale1",

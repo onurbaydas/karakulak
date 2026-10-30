@@ -4,8 +4,8 @@
 
 use serde_json::{Value, json};
 use std::collections::HashMap;
-use zbus::blocking::{Connection, Proxy};
-use zbus::zvariant::OwnedValue;
+use karakulak_dbus::{Connection, Proxy};
+use karakulak_dbus::OwnedVariant;
 
 fn err(e: impl std::fmt::Display) -> String {
     e.to_string()
@@ -26,7 +26,7 @@ pub fn get() -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
     let proxy = profiles(&bus)?;
     let active: String = proxy.get_property("ActiveProfile").map_err(err)?;
-    let list: Vec<HashMap<String, OwnedValue>> = proxy.get_property("Profiles").map_err(err)?;
+    let list: Vec<HashMap<String, OwnedVariant>> = proxy.get_property("Profiles").map_err(err)?;
     let available: Vec<String> = list
         .iter()
         .filter_map(|p| String::try_from(p.get("Profile")?.try_clone().ok()?).ok())
