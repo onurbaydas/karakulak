@@ -6,6 +6,7 @@
 
 mod brightness;
 mod cursor;
+mod guest;
 mod handlers;
 mod input;
 mod ipc;

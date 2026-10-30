@@ -181,3 +181,7 @@ summary {
   margin-top: 0.5rem;
   background: var(--bg);
 }
+
+.power .wide {
+  grid-column: 1 / -1;
+}

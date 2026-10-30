@@ -39,9 +39,33 @@ fn write_message(output: &mut impl Write, msg: &Value) -> io::Result<()> {
     output.flush()
 }
 
+/// What a guest session may do; everything else (files, terminal, settings,
+/// VPN, programs) belongs to the owner. A new command is closed to guests
+/// until it is added here.
+const GUEST_ALLOWED: &[&str] = &[
+    "ping", "session", "battery", "volume", "set-volume", "toggle-mute", "sound-devices", "set-sound-output",
+    "wifi-list", "wifi-connect", "brightness", "set-brightness", "bluetooth", "bluetooth-connect",
+    "bluetooth-disconnect", "watch", "guest-end", "lock", "unlock", "poweroff", "reboot", "suspend",
+];
+
+fn is_guest() -> bool {
+    std::env::var("KARAKULAK_GUEST").as_deref() == Ok("1")
+}
+
+fn forward(msg: &Value, cmd: &str) -> Result<Value, String> {
+    let mut request = msg.clone();
+    request["cmd"] = json!(cmd);
+    brightness::compositor(request).unwrap_or(Err("not in Karakulak's compositor".into()))
+}
+
 fn handle(msg: &Value) -> Result<Value, String> {
     let arg = |name: &str| msg[name].as_str().unwrap_or("");
+    if is_guest() && !GUEST_ALLOWED.contains(&arg("cmd")) {
+        return Err("not available in a guest session".into());
+    }
     match arg("cmd") {
+        "session" => Ok(json!({ "guest": is_guest() })),
+        "guest-start" | "guest-end" => forward(msg, arg("cmd")),
         "ping" => Ok(json!("pong")),
         "battery" => Ok(battery()),
         cmd @ ("poweroff" | "reboot" | "suspend") => systemctl(cmd),

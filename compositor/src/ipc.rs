@@ -75,6 +75,15 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
                 Err(e) => json!({ "ok": false, "error": e }),
             }
         }
+        Some("guest") => json!({ "ok": true, "result": { "active": state.guest_active() } }),
+        Some("guest-start") => match state.start_guest() {
+            Ok(()) => json!({ "ok": true, "result": null }),
+            Err(e) => json!({ "ok": false, "error": e }),
+        },
+        Some("guest-end") => {
+            state.end_guest();
+            json!({ "ok": true, "result": null })
+        }
         Some("lock") => {
             state.lock();
             json!({ "ok": true, "result": null })

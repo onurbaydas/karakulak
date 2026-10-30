@@ -557,6 +557,18 @@ fn Vpns(on_error: WriteSignal<String>) -> impl IntoView {
     }
 }
 
+#[derive(Deserialize)]
+struct Session {
+    guest: bool,
+}
+
+/// Opens one of the extension's pages in a new tab.
+fn open_page(url: &'static str) {
+    spawn_local(async move {
+        let _ = call("tabs.create", &[object(&[("url", url.into())])]).await;
+    });
+}
+
 #[component]
 fn Panel() -> impl IntoView {
     let (time, set_time) = signal(clock());
@@ -564,6 +576,9 @@ fn Panel() -> impl IntoView {
     let (error, set_error) = signal(String::new());
 
     set_interval(move || set_time.set(clock()), Duration::from_secs(1));
+    // A guest session gets the basics only.
+    let guest = RwSignal::new(false);
+    run::<Session>("session", vec![], set_error, move |s| guest.set(s.is_some_and(|s| s.guest)));
     spawn_local(async move {
         match send::<Battery>("battery", &[]).await {
             Ok(Some(b)) => set_battery.set(battery_text(&b)),
@@ -576,32 +591,33 @@ fn Panel() -> impl IntoView {
         <time id="clock">{move || time.get().0}</time>
         <p id="date">{move || time.get().1}</p>
         <p id="battery">{battery}</p>
-        <Vpns on_error=set_error />
+        <Show when=move || !guest.get()>
+            <Vpns on_error=set_error />
+        </Show>
         <Volume on_error=set_error />
         <Brightness on_error=set_error />
         <Wifi on_error=set_error />
         <BluetoothSection on_error=set_error />
         <div class="power">
-            <button on:click={move |_| {
-                spawn_local(async move {
-                    let _ = call("tabs.create", &[object(&[("url", "files.html".into())])]).await;
-                });
-            }}>{t("Dosyalar", "Files")}</button>
-            <button on:click={move |_| {
-                spawn_local(async move {
-                    let _ = call("tabs.create", &[object(&[("url", "terminal.html".into())])]).await;
-                });
-            }}>"Terminal"</button>
-            <button on:click={move |_| {
-                spawn_local(async move {
-                    let _ = call("tabs.create", &[object(&[("url", "tasks.html".into())])]).await;
-                });
-            }}>{t("Görevler", "Tasks")}</button>
-            <button on:click={move |_| {
-                spawn_local(async move {
-                    let _ = call("tabs.create", &[object(&[("url", "settings.html".into())])]).await;
-                });
-            }}>{t("Ayarlar", "Settings")}</button>
+            <Show
+                when=move || !guest.get()
+                fallback=move || {
+                    view! {
+                        <button class="wide" on:click={move |_| run::<()>("guest-end", vec![], set_error, |_| {})}>
+                            {t("Misafir oturumunu bitir", "End guest session")}
+                        </button>
+                    }
+                }
+            >
+                <button on:click=move |_| open_page("files.html")>{t("Dosyalar", "Files")}</button>
+                <button on:click=move |_| open_page("terminal.html")>"Terminal"</button>
+                <button on:click=move |_| open_page("tasks.html")>{t("Görevler", "Tasks")}</button>
+                <button on:click=move |_| open_page("settings.html")>{t("Ayarlar", "Settings")}</button>
+                <button title={t("Başkası kısa süre kullanacaksa: iz bırakmaz", "For someone else, briefly: leaves no trace")}
+                    on:click={move |_| run::<()>("guest-start", vec![], set_error, |_| {})}>
+                    {t("Misafir", "Guest")}
+                </button>
+            </Show>
             <button on:click={move |_| run::<()>("lock", vec![], set_error, |_| {})}>{t("Kilitle", "Lock")}</button>
             <PowerButton label={t("Uyku", "Sleep")} cmd="suspend" on_error=set_error />
             <PowerButton label={t("Yeniden başlat", "Restart")} cmd="reboot" on_error=set_error />

@@ -158,6 +158,7 @@ impl State {
     }
 
     fn power_tick(&mut self) {
+        self.check_guest();
         self.power.inhibitors.retain(|s| s.alive());
         let idle = self.power.last_input.elapsed();
         if self.power.inhibitors.is_empty() {

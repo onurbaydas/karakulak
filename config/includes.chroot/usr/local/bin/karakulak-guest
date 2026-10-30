@@ -1,0 +1,12 @@
+#!/bin/sh
+# Firefox for a guest session, in a profile folder that lives in memory and is
+# deleted when the session ends (the compositor removes it).
+# Usage: karakulak-guest <profile folder>
+set -e
+
+profile="$1"
+mkdir -p "$profile/chrome"
+cp /usr/share/karakulak/firefox/userChrome.css "$profile/chrome/userChrome.css"
+printf 'user_pref("extensions.webextensions.uuids", "{\\"panel@karakulak\\":\\"%s\\"}");\n' \
+	2951297c-2f42-4d49-b13d-f93f0c191b13 > "$profile/user.js"
+exec firefox --no-remote --name karakulak-guest --profile "$profile"

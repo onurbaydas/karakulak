@@ -39,6 +39,7 @@ pub struct State {
     /// their app id (lock window or not).
     pub pending: Vec<Window>,
     pub lock: crate::lock::Lock,
+    pub guest: crate::guest::Guest,
 
     pub compositor_state: CompositorState,
     pub xdg_shell_state: XdgShellState,
@@ -103,6 +104,7 @@ impl State {
             windows_requested: 0,
             pending: Vec::new(),
             lock: Default::default(),
+            guest: Default::default(),
             socket_name,
             compositor_state,
             xdg_shell_state,
@@ -167,7 +169,7 @@ impl State {
     pub fn fill_empty_screens(&mut self) {
         let windows = self.space.elements().filter(|w| !is_floating(w)).count();
         let screens = self.space.outputs().count();
-        if self.lock.locked || windows == 0 || self.windows_requested > 0 || windows >= screens {
+        if self.lock.locked || self.guest_active() || windows == 0 || self.windows_requested > 0 || windows >= screens {
             return;
         }
         let command = std::env::var("KARAKULAK_NEW_WINDOW").unwrap_or_else(|_| "firefox --new-window".into());
@@ -200,7 +202,11 @@ impl State {
             self.lock_window_created(window);
         } else {
             self.windows_requested = self.windows_requested.saturating_sub(1);
-            if let Some(window) = self.hide_while_locked(window.clone()) {
+            if self.guest_takes(&window) {
+                if let Some(geometry) = self.primary_output().and_then(|o| self.space.output_geometry(&o)) {
+                    toplevel.with_pending_state(|state| state.size = Some(geometry.size));
+                }
+            } else if let Some(window) = self.hide_while_locked(window.clone()) {
                 if is_floating(&window) {
                     self.place_floating(window);
                 } else {

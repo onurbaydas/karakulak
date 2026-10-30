@@ -168,6 +168,16 @@ impl State {
         self.show_lock_window();
     }
 
+    pub fn lock_available(&self) -> bool {
+        self.lock.sender.is_some()
+    }
+
+    /// Locks, keeping `windows` hidden until unlock as well.
+    pub fn lock_with_hidden(&mut self, windows: Vec<Window>) {
+        self.lock.hidden.extend(windows);
+        self.lock();
+    }
+
     fn unlock(&mut self) {
         if !self.lock.locked {
             return;
