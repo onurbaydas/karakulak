@@ -222,12 +222,14 @@ jobs:
       - name: Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 qemu-utils xorriso socat
+          sudo apt-get install -y qemu-system-x86 qemu-utils ovmf xorriso socat
           sudo chmod 666 /dev/kvm || true
       - name: Boot test
         run: tests/boot-test.sh *.iso boot-test
-      - name: Install test
-        run: tests/disk-install-test.sh *.iso boot-test
+      - name: Install test (BIOS)
+        run: tests/disk-install-test.sh *.iso boot-test bios
+      - name: Install test (UEFI)
+        run: tests/disk-install-test.sh *.iso boot-test uefi
       - uses: actions/upload-artifact@v7
         if: always()
         with:

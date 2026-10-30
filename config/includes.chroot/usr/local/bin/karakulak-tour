@@ -6,8 +6,14 @@
 
 # Leave time for the test's screenshot of the first screen.
 sleep 60
+# Started before the compositor, so find its display to reach Firefox.
+for socket in "$XDG_RUNTIME_DIR"/wayland-*; do
+	case "$socket" in *.lock) ;; *) WAYLAND_DISPLAY=$(basename "$socket") ;; esac
+done
+export WAYLAND_DISPLAY
 for page in newtab popup files terminal tasks settings help shortcuts report install; do
-	firefox --profile "$1" --new-tab "moz-extension://$2/$page.html"
+	# Hands the page to the running Firefox; never waits for long.
+	timeout 20 firefox --profile "$1" --new-tab "moz-extension://$2/$page.html" 2>&1 | logger -t karakulak-tour
 	sleep 10
 	logger -t karakulak-tour "showing $page"
 	# The test looks at the log every few seconds.

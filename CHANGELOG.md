@@ -3,6 +3,13 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
+## 0.9.6: Release candidate
+
+- Firefox speaks the system's language (Turkish by default) instead of always
+  English, and no longer offers to translate Turkish pages.
+- Every build installs to a virtual disk with both BIOS and UEFI.
+- The boot test's page screenshots show the pages (Firefox was not reached).
+
 ## 0.9.5: Installing in the browser
 
 - "Install Karakulak" in the panel and on the new tab page of the live system:

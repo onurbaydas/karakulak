@@ -29,6 +29,8 @@ if [ ! -f "$PROFILE/chrome/userChrome.css" ]; then
 fi
 printf 'user_pref("extensions.webextensions.uuids", "{\\"panel@karakulak\\":\\"%s\\"}");\n' "$PANEL_UUID" \
 	> "$PROFILE/user.js"
+# Firefox in the system's language (Settings > Language), not always English.
+echo 'user_pref("intl.locale.requested", "");' >> "$PROFILE/user.js"
 # Screen sharing goes through the portal and PipeWire.
 echo 'user_pref("media.webrtc.capture.allow-pipewire", true);' >> "$PROFILE/user.js"
 # High contrast from Settings: system colors instead of the pages' own.
