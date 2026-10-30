@@ -5,6 +5,7 @@ use std::time::Duration;
 
 mod files;
 mod help;
+mod install;
 mod newtab;
 mod notify;
 mod settings;
@@ -634,6 +635,9 @@ fn KeyboardLayout(on_error: WriteSignal<String>) -> impl IntoView {
 #[derive(Deserialize)]
 struct Session {
     guest: bool,
+    /// Running from the ISO: offer to install.
+    #[serde(default)]
+    live: bool,
 }
 
 /// Opens one of the extension's pages in a new tab.
@@ -652,7 +656,11 @@ fn Panel() -> impl IntoView {
     set_interval(move || set_time.set(clock()), Duration::from_secs(1));
     // A guest session gets the basics only.
     let guest = RwSignal::new(false);
-    run::<Session>("session", vec![], set_error, move |s| guest.set(s.is_some_and(|s| s.guest)));
+    let live = RwSignal::new(false);
+    run::<Session>("session", vec![], set_error, move |s| {
+        guest.set(s.as_ref().is_some_and(|s| s.guest));
+        live.set(s.is_some_and(|s| s.live));
+    });
     spawn_local(async move {
         match send::<Battery>("battery", &[]).await {
             Ok(Some(b)) => set_battery.set(battery_text(&b)),
@@ -677,6 +685,9 @@ fn Panel() -> impl IntoView {
         <Wifi on_error=set_error />
         <BluetoothSection on_error=set_error />
         <div class="power">
+            <Show when=move || live.get()>
+                <button class="wide" on:click=move |_| open_page("install.html")>{t("Karakulak'ı kur", "Install Karakulak")}</button>
+            </Show>
             <Show
                 when=move || !guest.get()
                 fallback=move || {
@@ -722,6 +733,9 @@ pub fn start() {
     } else if path.ends_with("/shortcuts.html") {
         title("Kısayollar", "Keyboard shortcuts");
         mount_to_body(shortcuts::Shortcuts);
+    } else if path.ends_with("/install.html") {
+        title("Karakulak'ı kur", "Install Karakulak");
+        mount_to_body(install::Install);
     } else if path.ends_with("/tasks.html") {
         title("Görev yöneticisi", "Task manager");
         mount_to_body(tasks::Tasks);

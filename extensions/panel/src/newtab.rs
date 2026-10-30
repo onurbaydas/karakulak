@@ -51,6 +51,14 @@ pub fn NewTab() -> impl IntoView {
         sites.set(list);
     });
 
+    // On the live system: a way to the installer.
+    let live = RwSignal::new(false);
+    spawn_local(async move {
+        if let Ok(Some(session)) = crate::send::<crate::Session>("session", &[]).await {
+            live.set(session.live);
+        }
+    });
+
     let query = RwSignal::new(String::new());
     let search = move |ev: leptos::ev::SubmitEvent| {
         ev.prevent_default();
@@ -78,6 +86,9 @@ pub fn NewTab() -> impl IntoView {
                     </a>
                 </For>
             </nav>
+            <Show when=move || live.get()>
+                <a class="install" href="install.html">{t("Karakulak'ı bu bilgisayara kur", "Install Karakulak on this computer")}</a>
+            </Show>
         </main>
     }
 }

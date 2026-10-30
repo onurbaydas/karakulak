@@ -85,7 +85,7 @@ sleep 30
 screenshot screen
 
 # karakulak-tour opens the panel pages one by one; an empty page only warns.
-for page in newtab popup files terminal tasks settings help shortcuts report; do
+for page in newtab popup files terminal tasks settings help shortcuts report install; do
 	wait_for 120 "the $page page" "karakulak-tour.*showing $page"
 	screenshot "page-$page" || echo "WARNING: the $page page looks empty"
 done

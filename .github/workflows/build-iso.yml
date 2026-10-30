@@ -32,6 +32,10 @@ jobs:
         with:
           name: karakulakd
           path: daemon/target/release/karakulakd
+      - uses: actions/upload-artifact@v7
+        with:
+          name: karakulak-install
+          path: daemon/target/release/karakulak-install
 
   # Known vulnerabilities in dependencies stop the build.
   audit:
@@ -136,6 +140,10 @@ jobs:
           path: daemon/target/release
       - uses: actions/download-artifact@v8
         with:
+          name: karakulak-install
+          path: daemon/target/release
+      - uses: actions/download-artifact@v8
+        with:
           name: karakulak-compositor
           path: compositor/target/release
       - name: Build
@@ -199,7 +207,8 @@ jobs:
           path: "*.iso"
           if-no-files-found: error
 
-  # Boots the ISO and checks that the session comes up.
+  # Boots the ISO and checks that the session comes up, then installs it to a
+  # virtual disk and boots that.
   boot:
     needs: iso
     # Runs even when signing failed earlier; only the ISO matters here.
@@ -213,10 +222,12 @@ jobs:
       - name: Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 xorriso socat
+          sudo apt-get install -y qemu-system-x86 qemu-utils xorriso socat
           sudo chmod 666 /dev/kvm || true
       - name: Boot test
         run: tests/boot-test.sh *.iso boot-test
+      - name: Install test
+        run: tests/disk-install-test.sh *.iso boot-test
       - uses: actions/upload-artifact@v7
         if: always()
         with:

@@ -53,6 +53,16 @@ network-manager
 wpasupplicant
 ca-certificates
 
+# Installing from the live system (karakulak-install): partitions, and GRUB
+# for both BIOS and UEFI, signed for Secure Boot
+dosfstools
+efibootmgr
+grub2-common
+grub-pc-bin
+grub-efi-amd64-bin
+grub-efi-amd64-signed
+shim-signed
+
 # Firmware: Wi-Fi and sound on most laptops need these
 firmware-linux-free
 firmware-misc-nonfree

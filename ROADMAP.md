@@ -169,6 +169,16 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
   tıkladığın ekran), artık hep ilk ekran değil
 - [x] README güncel durumu anlatıyor (cage ve v0.1 kapsamı kalktı)
 
+## v0.9.5 — Tarayıcıda kurulum
+
+- [x] Kurulum sayfası (canlı sistemde panelde ve yeni sekmede "Karakulak'ı kur"):
+  disk, ad, kullanıcı adı, şifre, bilgisayarın adı (ADR 0014)
+- [x] Dil, klavye, saat dilimi ve Wi-Fi ağları canlı sistemden aynen geçer
+- [x] BIOS ve UEFI, Secure Boot dahil
+- [x] Her derlemede sanal diske otomatik kurulum ve kurulan sistemin açılış testi
+- [ ] Sadece bütün diske kurulum; yanına kurmak ve şifreli disk sonra. O zamana
+  kadar Debian'ın kurulum ekranı da açılış menüsünde kalıyor.
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)

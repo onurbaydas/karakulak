@@ -3,6 +3,15 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
+## 0.9.5: Installing in the browser
+
+- "Install Karakulak" in the panel and on the new tab page of the live system:
+  choose a disk, your name and a password. Language, keyboard, time zone and
+  Wi-Fi networks carry over. BIOS and UEFI, with Secure Boot.
+- The whole disk is used; installing next to another system still goes
+  through Debian's installer in the boot menu.
+- Every build installs to a virtual disk and boots the result.
+
 ## 0.9.4: Tidying up
 
 - Screen sharing shares the screen under the pointer (where you clicked

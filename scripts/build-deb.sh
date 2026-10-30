@@ -4,7 +4,8 @@
 # theme, polkit, PAM...). Installed systems get Karakulak's updates through it.
 #
 # Usage: scripts/build-deb.sh <version> <output folder>
-# Expects the binaries built at daemon/target/release/karakulakd and
+# Expects the binaries built at daemon/target/release/karakulakd,
+# daemon/target/release/karakulak-install and
 # compositor/target/release/karakulak-compositor.
 set -e
 
@@ -15,6 +16,7 @@ tree=$(mktemp -d)
 
 cp -a "$root/config/includes.chroot/." "$tree/"
 install -D -m 755 "$root/daemon/target/release/karakulakd" "$tree/usr/bin/karakulakd"
+install -D -m 755 "$root/daemon/target/release/karakulak-install" "$tree/usr/sbin/karakulak-install"
 install -D -m 755 "$root/compositor/target/release/karakulak-compositor" "$tree/usr/bin/karakulak-compositor"
 
 # Runtime packages: the image's package list, without firmware (hardware

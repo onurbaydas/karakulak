@@ -67,5 +67,10 @@ export KARAKULAK_HELP_COMMAND="firefox --profile $PROFILE --new-tab moz-extensio
 if grep -qw karakulak.tour /proc/cmdline; then
 	karakulak-tour "$PROFILE" "$PANEL_UUID" &
 fi
+# The install test installs to the first virtual disk, as the install page would.
+if grep -qw karakulak.install-test /proc/cmdline; then
+	echo '{"disk": "vda", "user": "deneme", "fullname": "Deneme", "password": "deneme", "hostname": "deneme"}' |
+		systemd-cat --identifier=karakulak-install-test karakulakd --install &
+fi
 # Logs go to the journal: journalctl -t karakulak-compositor
 exec systemd-cat --identifier=karakulak-compositor karakulak-compositor -- firefox --profile "$PROFILE"

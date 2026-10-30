@@ -6,7 +6,7 @@
 
 # Leave time for the test's screenshot of the first screen.
 sleep 60
-for page in newtab popup files terminal tasks settings help shortcuts report; do
+for page in newtab popup files terminal tasks settings help shortcuts report install; do
 	firefox --profile "$1" --new-tab "moz-extension://$2/$page.html"
 	sleep 10
 	logger -t karakulak-tour "showing $page"

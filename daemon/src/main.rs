@@ -7,6 +7,7 @@ mod backup;
 mod bluetooth;
 mod brightness;
 mod files;
+mod install;
 mod power_profile;
 mod terminal;
 mod report;
@@ -68,7 +69,9 @@ fn handle(msg: &Value) -> Result<Value, String> {
         return Err("not available in a guest session".into());
     }
     match arg("cmd") {
-        "session" => Ok(json!({ "guest": is_guest() })),
+        "session" => Ok(json!({ "guest": is_guest(), "live": install::is_live() })),
+        "install-info" => install::info(),
+        "install-start" => install::start(msg),
         "guest-start" | "guest-end" => forward(msg, arg("cmd")),
         "ping" => Ok(json!("pong")),
         "battery" => Ok(battery()),
@@ -210,6 +213,9 @@ pub fn emit(msg: &Value) -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("--install") {
+        std::process::exit(install::from_command_line());
+    }
     let mut input = io::stdin().lock();
     while let Some(msg) = read_message(&mut input)? {
         let reply = match handle(&msg) {
