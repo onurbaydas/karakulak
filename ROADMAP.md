@@ -118,6 +118,16 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Ekran büyüteci (Super+artı/eksi, Super+0 kapatır), imlecin etrafında
 - [x] Bluetooth'ta kod isteyen cihazlar (kod panelde gösterilir)
 
+## v0.8 — Kontrol ve gizlilik
+
+- [ ] Görev yöneticisi: işlemci, bellek, disk; çalışan programlar, kapatma
+- [ ] Bildirimler: USB, güncelleme, pil, indirme
+- [ ] Kısayollar sayfası (Super+/)
+- [ ] Dosya yöneticisinde arama ve resim önizleme
+- [ ] Misafir oturumu: iz bırakmaz, çıkınca her şey silinir
+- [ ] Tor ile gezinme (Ayarlar'dan aç/kapa)
+- [ ] Yedekleme: ayarlar ve Firefox profili USB'ye, geri yükleme
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)
