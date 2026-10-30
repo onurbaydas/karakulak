@@ -146,6 +146,9 @@ jobs:
             *) version="0.0.$(date -u +%Y%m%d%H%M)~${GITHUB_SHA%"${GITHUB_SHA#???????}"}" ;;
           esac
           scripts/build-deb.sh "$version" debs
+      # Clashing files or dpkg questions fail here, before the ISO build.
+      - name: Install test
+        run: tests/install-test.sh debs/*.deb
       - uses: actions/upload-artifact@v4
         with:
           name: karakulak-deb

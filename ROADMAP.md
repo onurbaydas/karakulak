@@ -142,6 +142,14 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] ISO boyutunu küçültme: önerilen paketler kurulmuyor, gerekenler açıkça listede;
   laptop Wi-Fi ve ses firmware'i eklendi
 
+## v0.9.1 — Bakım
+
+- [x] Paket kurulum testi CI'da: dosya çakışmaları ISO'dan önce, dakikalar içinde yakalanır
+- [ ] Açılış testi Karakulak'ın kendi sayfalarının açıldığını da kontrol eder
+- [ ] Bütün sayfaların ekran görüntüleri her derlemede
+- [ ] Eskiyen araçların güncellenmesi (GitHub eylemleri, wasm-pack)
+- [ ] CHANGELOG.md
+
 ## v1.0 — İlk sürüm
 
 - [ ] Kurulum da tarayıcının içinde (Debian'ın kurulum ekranı kalkar)
