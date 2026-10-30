@@ -15,18 +15,21 @@ extension.
 
 ## Status
 
-Early development. v0.1 targets an installable ISO that boots into fullscreen Firefox.
+Version 0.9: everything for daily use is there and is being tested before 1.0.
+What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
-## v0.1 scope
+## What's in it
 
-- Minimal Debian (trixie) based ISO: install to disk, or try it live first
-- Auto-login, then Firefox fullscreen inside [cage](https://github.com/cage-kiosk/cage) (Wayland)
-- Firefox from Mozilla's official APT repository
-- First-run welcome page in Firefox to choose a privacy level: standard, strict or paranoid
-- `userChrome.css` theme with tabs as the taskbar
-
-Later: Rust system daemon with native messaging, system extensions
-(file manager and others), custom boot screen.
+- Debian (trixie) based ISO: install to disk, or try it live first
+- Auto-login into Karakulak's own Wayland compositor (Rust, Smithay), Firefox
+  fullscreen on every screen, locked with your password
+- Firefox from Mozilla's official APT repository; a welcome page to choose a
+  privacy level: standard, strict or paranoid
+- Tabs as the taskbar; a panel extension for Wi-Fi, Bluetooth, sound,
+  brightness, battery and power
+- Files, terminal, tasks and settings as extension pages, backed by a Rust
+  daemon (karakulakd) over native messaging
+- Signed updates from Karakulak's own APT repository
 
 ## Building
 

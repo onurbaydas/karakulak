@@ -7,8 +7,6 @@ denenince biter.
 
 ## v0.1 — Açılıyor
 
-Durum: Yazıldı, henüz denenmedi.
-
 - [x] Debian tabanlı ISO: canlı dene ya da diske kur
 - [x] Açılışta otomatik giriş, tam ekran Firefox
 - [x] Hoş geldin sayfasında gizlilik seviyesi seçimi
@@ -94,8 +92,8 @@ Bitti sayılır: Terminal açmadan sistemi güncelleyip ayarlarını değiştire
 - [x] GitHub'da her ISO için otomatik açılış testi (ekran görüntüsüyle)
 - [x] Klavyedeki ses ve parlaklık tuşları
 - [x] Touchpad: dokunarak tıklama, doğal kaydırma
-- [x] Boşta kalınca ekran kararır ve kilitlenir (video oynarken değil); ekranı gerçekten
-  kapatmak (DPMS) sonra
+- [x] Boşta kalınca ekran kararır ve kilitlenir (video oynarken değil); uzun süre
+  boşta kalınca ekran kapanır (DPMS)
 - [x] Pil azalınca uyarı, kritik seviyede uyku
 - [x] Print Screen ile ekran görüntüsü (Resimler klasörüne)
 - [x] Gece ışığı
@@ -154,8 +152,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 ## v0.9.2 — Günlük kullanım 2
 
 - [x] Ekran paylaşımı (Meet, Zoom, Discord): ekran yöneticisi görüntüyü
-  xdg-desktop-portal'a verir, Firefox oradan alır (ADR 0013). Şimdilik ilk ekran
-  paylaşılıyor.
+  xdg-desktop-portal'a verir, Firefox oradan alır (ADR 0013).
 - [x] Orta tıkla yapıştırma (seçili metin)
 - [x] Güç modu: Performans / Dengeli / Pil tasarrufu (power-profiles-daemon)
 - [x] İki klavye düzeni: Super+Boşluk ile geçilir, panelde hangisinin açık olduğu görünür
@@ -165,6 +162,12 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 
 - [x] Açılış testi panelin bütün sayfalarını sırayla açar ve her birinin ekran
   görüntüsünü alır (derlemenin `boot-test` dosyalarında)
+
+## v0.9.4 — Toparlama
+
+- [x] Ekran paylaşımında farenin bulunduğu ekran paylaşılır ("Paylaş"a
+  tıkladığın ekran), artık hep ilk ekran değil
+- [x] README güncel durumu anlatıyor (cage ve v0.1 kapsamı kalktı)
 
 ## v1.0 — İlk sürüm
 

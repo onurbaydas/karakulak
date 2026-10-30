@@ -6,6 +6,7 @@
 //!   {"cmd": "set-software-brightness", "id": .., "on": bool} -> same list
 //!   {"cmd": "screens"}                             -> [{"id", "name", "current", "scale", "modes"}]
 //!   {"cmd": "set-screen", "id", "width", "height", "refresh", "scale"} -> same list
+//!   {"cmd": "pointer-screen"}                      -> "id" of the screen under the pointer
 //!   {"cmd": "lock"}
 //!   {"cmd": "unlock", "password": ..}              -> error if wrong
 
@@ -40,6 +41,21 @@ pub fn init(event_loop: &mut EventLoop<State>, socket_name: &str) -> std::io::Re
     Ok(path)
 }
 
+/// `karakulak-compositor --pointer-screen`: the screen sharing portal's
+/// picker. Prints the screen under the pointer, where the user just clicked
+/// "share" in Firefox.
+pub fn print_pointer_screen() -> std::io::Result<()> {
+    let path = std::env::var_os("KARAKULAK_SOCKET").ok_or_else(|| std::io::Error::other("KARAKULAK_SOCKET is not set"))?;
+    let mut stream = UnixStream::connect(path)?;
+    writeln!(stream, "{}", json!({ "cmd": "pointer-screen" }))?;
+    let mut line = String::new();
+    BufReader::new(&stream).read_line(&mut line)?;
+    let reply: Value = serde_json::from_str(&line).map_err(std::io::Error::other)?;
+    let name = reply["result"].as_str().ok_or_else(|| std::io::Error::other("no screen"))?;
+    println!("{name}");
+    Ok(())
+}
+
 fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
     stream.set_nonblocking(false)?;
     stream.set_read_timeout(Some(Duration::from_secs(1)))?;
@@ -71,6 +87,7 @@ fn serve(state: &mut State, stream: UnixStream) -> std::io::Result<()> {
             json!({ "ok": true, "result": state.layouts_json() })
         }
         Some("screens") => json!({ "ok": true, "result": state.screens_list() }),
+        Some("pointer-screen") => json!({ "ok": true, "result": state.pointer_screen() }),
         Some("set-screen") => {
             let n = |name: &str| request[name].as_i64().unwrap_or(0) as i32;
             let mode = (n("width"), n("height"), n("refresh"));

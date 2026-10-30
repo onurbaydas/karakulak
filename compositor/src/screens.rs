@@ -104,6 +104,13 @@ impl State {
         Value::Array(screens)
     }
 
+    /// The screen under the pointer, or the first one: the screen to share.
+    pub fn pointer_screen(&self) -> Option<String> {
+        let pos = self.seat.get_pointer()?.current_location();
+        let output = self.space.output_under(pos).next().or_else(|| self.space.outputs().next())?;
+        Some(output.name())
+    }
+
     pub fn set_screen(&mut self, id: &str, mode: Mode, scale: f64) -> Result<(), String> {
         let output = self
             .space

@@ -36,7 +36,9 @@ it.
 - Screen sharing works with Debian's packages and little code.
 - Every shared frame is read back to the CPU; the portal is limited to
   30 frames per second to keep that cheap.
-- There is no screen picker yet: the portal shares the first screen.
+- There is no screen picker page: the portal asks
+  `karakulak-compositor --pointer-screen` and shares the screen under the
+  pointer, where the user clicked "Share" (added in 0.9.4).
 - When Debian ships xdg-desktop-portal-wlr 0.8, moving to
   `ext-image-copy-capture` (and GPU buffers) needs no changes outside the
   compositor.

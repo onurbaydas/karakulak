@@ -1,4 +1,5 @@
-# Screen sharing: no picker program yet, the portal shares the first screen.
+# Screen sharing: the screen under the pointer, where "share" was clicked.
 [screencast]
-chooser_type=none
+chooser_type=simple
+chooser_cmd=karakulak-compositor --pointer-screen
 max_fps=30

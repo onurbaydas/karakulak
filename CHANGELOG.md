@@ -3,6 +3,12 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
+## 0.9.4: Tidying up
+
+- Screen sharing shares the screen under the pointer (where you clicked
+  "Share"), not always the first one.
+- The README describes Karakulak as it is now.
+
 ## 0.9.3: Screenshots
 
 - The boot test opens every panel page (new tab, panel, files, terminal,

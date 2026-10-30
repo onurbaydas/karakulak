@@ -27,6 +27,9 @@ use smithay::reexports::{calloop::EventLoop, wayland_server::Display};
 pub use state::State;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if std::env::args().nth(1).as_deref() == Some("--pointer-screen") {
+        return Ok(ipc::print_pointer_screen()?);
+    }
     init_logging();
 
     let mut event_loop: EventLoop<State> = EventLoop::try_new()?;
@@ -55,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // services at us.
     if !nested {
         let _ = std::process::Command::new("dbus-update-activation-environment")
-            .args(["--systemd", "WAYLAND_DISPLAY", "XDG_CURRENT_DESKTOP"])
+            .args(["--systemd", "WAYLAND_DISPLAY", "XDG_CURRENT_DESKTOP", "KARAKULAK_SOCKET"])
             .spawn();
     }
     if let Some(lock_events) = lock::init(&mut state) {

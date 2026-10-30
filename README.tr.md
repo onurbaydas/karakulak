@@ -15,18 +15,21 @@ eklentisidir.
 
 ## Durum
 
-Erken geliştirme aşamasında. v0.1 hedefi: tam ekran Firefox'la açılan, kurulabilir bir ISO.
+Sürüm 0.9: günlük kullanım için gereken her şey var, 1.0'dan önce deneniyor.
+Her sürümde neyin değiştiği [CHANGELOG.md](CHANGELOG.md) dosyasında.
 
-## v0.1 kapsamı
+## İçinde neler var
 
-- Minimal, Debian (trixie) tabanlı ISO: diske kurulur, istersen önce canlı denenir
-- Otomatik giriş, ardından [cage](https://github.com/cage-kiosk/cage) (Wayland) içinde tam ekran Firefox
-- Firefox, Mozilla'nın resmi APT deposundan
-- İlk açılışta Firefox içinde hoş geldin sayfası, gizlilik seviyesi seçimi: standart, sıkı veya paranoyak
-- Sekmeleri görev çubuğu yapan `userChrome.css` teması
-
-Sonra gelecekler: native messaging ile konuşan Rust sistem daemon'u, sistem
-eklentileri (dosya yöneticisi vb.), özel açılış ekranı.
+- Debian (trixie) tabanlı ISO: diske kurulur, istersen önce canlı denenir
+- Otomatik giriş, ardından Karakulak'ın kendi Wayland ekran yöneticisi (Rust,
+  Smithay); her ekranda tam ekran Firefox, şifreyle kilitlenir
+- Firefox, Mozilla'nın resmi APT deposundan; hoş geldin sayfasında gizlilik
+  seviyesi seçimi: standart, sıkı ya da paranoyak
+- Sekmeler görev çubuğu; Wi-Fi, Bluetooth, ses, parlaklık, pil ve güç için
+  panel eklentisi
+- Dosyalar, terminal, görevler ve ayarlar eklenti sayfası; arkalarında native
+  messaging ile konuşan Rust daemon'u (karakulakd)
+- Karakulak'ın kendi imzalı APT deposundan güncellemeler
 
 ## Derleme
 
