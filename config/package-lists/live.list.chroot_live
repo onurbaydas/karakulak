@@ -1,0 +1,5 @@
+# Only in the live system (the installer removes them): live-config creates
+# the live user with user-setup. Recommended by live-config, which the image
+# does not install by itself.
+user-setup
+live-tools
