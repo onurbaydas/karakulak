@@ -1,0 +1,4 @@
+// Security updates install themselves every day. Read after the
+// 20auto-upgrades file unattended-upgrades creates, so this one wins.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
