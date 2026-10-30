@@ -1,0 +1,23 @@
+Architectures: amd64
+Codename: trixie
+Components: main
+Date: Fri, 30 Oct 2026 16:55:51 +0000
+Label: Karakulak
+Origin: Karakulak
+Suite: trixie
+MD5Sum:
+ ab0cab8e39feb4064875545e1664bc8b              142 Release
+ d41d8cd98f00b204e9800998ecf8427e                0 main/binary-amd64/Packages
+ 7b635305ed641293a1b981d10e03bb0d               29 main/binary-amd64/Packages.gz
+SHA1:
+ 048fa0e0d3df7a24ce2f55d192c628895a4a1815              142 Release
+ da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-amd64/Packages
+ 0181f47ff38ce968a5a3071c3fe15efd21ff6b9c               29 main/binary-amd64/Packages.gz
+SHA256:
+ 2ece279f4054347629e796922a52513214885b80c642bcecb5c6fb27476f852b              142 Release
+ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-amd64/Packages
+ b60f70acd9ea9a1508ba49a6aaa32237088ada3011dead399ef96fd9eef22b29               29 main/binary-amd64/Packages.gz
+SHA512:
+ 712c85faec05982aead2c42c4f4e81c2b25085fe5830bd0309a6ac011822d0709809614b626b9e317c7673f469ebe9215df31c270aa61b532031fb528b5870d1              142 Release
+ cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e                0 main/binary-amd64/Packages
+ 06998a614f8b9fd876603f8943e31389253f0d19aebfcb9340ea70e4c0b0dcc817465307bb949d8f86f0ef08525bad7e4a3ba22893c75c242a9992644cd479d0               29 main/binary-amd64/Packages.gz
