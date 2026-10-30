@@ -1,6 +1,7 @@
 //! Bluetooth through BlueZ's D-Bus API: power, paired devices, and pairing
-//! new ones. Pairing works for devices that need no PIN (headphones, mice);
-//! PIN entry would need a pairing agent.
+//! new ones. While pairing, a BlueZ agent answers code requests: codes the
+//! user has to type on the device (keyboards) are sent to the page as
+//! `{"event": "bluetooth-code", "code": "123456"}` over the native port.
 
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -99,6 +100,60 @@ pub fn scan() -> Result<Value, String> {
     Ok(Value::Array(found))
 }
 
+const AGENT_PATH: &str = "/org/karakulak/bluetooth_agent";
+
+/// Shows a code the user has to type on the device being paired.
+fn show_code(code: &str) {
+    let _ = crate::emit(&json!({ "event": "bluetooth-code", "code": code }));
+}
+
+/// Six random digits, for keyboards that want a PIN typed on them.
+fn random_pin() -> String {
+    use std::io::Read;
+    let mut bytes = [0u8; 4];
+    let _ = std::fs::File::open("/dev/urandom").and_then(|mut f| f.read_exact(&mut bytes));
+    format!("{:06}", u32::from_ne_bytes(bytes) % 1_000_000)
+}
+
+/// Answers BlueZ during pairing. Pairing is started by the user from the
+/// panel, so confirmations are accepted; the code is always shown.
+struct Agent;
+
+#[zbus::interface(name = "org.bluez.Agent1")]
+impl Agent {
+    fn release(&self) {}
+
+    fn request_pin_code(&self, _device: OwnedObjectPath) -> String {
+        let pin = random_pin();
+        show_code(&pin);
+        pin
+    }
+
+    fn display_pin_code(&self, _device: OwnedObjectPath, pincode: String) {
+        show_code(&pincode);
+    }
+
+    /// A code shown on the other device that we would have to type in: not
+    /// supported, as nothing here can ask for it during pairing.
+    fn request_passkey(&self, _device: OwnedObjectPath) -> zbus::fdo::Result<u32> {
+        Err(zbus::fdo::Error::Failed("entering a code is not supported".into()))
+    }
+
+    fn display_passkey(&self, _device: OwnedObjectPath, passkey: u32, _entered: u16) {
+        show_code(&format!("{passkey:06}"));
+    }
+
+    fn request_confirmation(&self, _device: OwnedObjectPath, passkey: u32) {
+        show_code(&format!("{passkey:06}"));
+    }
+
+    fn request_authorization(&self, _device: OwnedObjectPath) {}
+
+    fn authorize_service(&self, _device: OwnedObjectPath, _uuid: String) {}
+
+    fn cancel(&self) {}
+}
+
 /// Pairs with a device found by `scan`, trusts it so it reconnects by itself,
 /// and connects.
 pub fn pair(path: &str) -> Result<Value, String> {
@@ -106,9 +161,15 @@ pub fn pair(path: &str) -> Result<Value, String> {
         return Err("not a Bluetooth device".into());
     }
     let bus = Connection::system().map_err(err)?;
-    Proxy::new(&bus, BLUEZ, path, DEVICE)
-        .and_then(|d| d.call_method("Pair", &()))
+    bus.object_server().at(AGENT_PATH, Agent).map_err(err)?;
+    let manager = Proxy::new(&bus, BLUEZ, "/org/bluez", "org.bluez.AgentManager1").map_err(err)?;
+    let agent = OwnedObjectPath::try_from(AGENT_PATH).map_err(err)?;
+    manager
+        .call_method("RegisterAgent", &(&agent, "KeyboardDisplay"))
         .map_err(err)?;
+    let paired = Proxy::new(&bus, BLUEZ, path, DEVICE).and_then(|d| d.call_method("Pair", &()));
+    let _ = manager.call_method("UnregisterAgent", &(&agent,));
+    paired.map_err(err)?;
     Proxy::new(&bus, BLUEZ, path, "org.freedesktop.DBus.Properties")
         .and_then(|p| p.call_method("Set", &(DEVICE, "Trusted", Variant::from(true))))
         .map_err(err)?;

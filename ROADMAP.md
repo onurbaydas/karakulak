@@ -116,7 +116,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Kesirli ölçek (%125, %150, %175...), keskin çizim (fractional-scale, viewporter)
 - [x] İngilizce arayüz (tarayıcının diline göre Türkçe ya da İngilizce)
 - [x] Ekran büyüteci (Super+artı/eksi, Super+0 kapatır), imlecin etrafında
-- [ ] Bluetooth'ta kod isteyen cihazlar
+- [x] Bluetooth'ta kod isteyen cihazlar (kod panelde gösterilir)
 
 ## v1.0 — İlk sürüm
 

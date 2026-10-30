@@ -354,12 +354,63 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
     }
 }
 
+/// Pairs over a long-lived native port, so the codes BlueZ asks for can be
+/// shown while pairing runs; `done` gets the final reply.
+fn pair_over_port(
+    path: String,
+    on_code: impl Fn(String) + 'static,
+    done: impl FnOnce(Result<Option<Bluetooth>, String>) + 'static,
+) {
+    use std::{cell::RefCell, rc::Rc};
+    use wasm_bindgen::{JsCast, prelude::Closure};
+    let done = Rc::new(RefCell::new(Some(done)));
+    spawn_local(async move {
+        let port = match call("runtime.connectNative", &["karakulakd".into()]).await {
+            Ok(port) => port,
+            Err(e) => {
+                if let Some(done) = done.borrow_mut().take() {
+                    done(Err(e));
+                }
+                return;
+            }
+        };
+        let port_for_reply = port.clone();
+        let listener = Closure::<dyn FnMut(JsValue)>::new(move |msg: JsValue| {
+            if karakulak_browser::get(&msg, "event").as_string().as_deref() == Some("bluetooth-code") {
+                if let Some(c) = karakulak_browser::get(&msg, "code").as_string() {
+                    on_code(c);
+                }
+                return;
+            }
+            let reply = serde_wasm_bindgen::from_value::<Reply<Bluetooth>>(msg)
+                .map_err(|e| e.to_string())
+                .and_then(|r| if r.ok { Ok(r.result) } else { Err(r.error.unwrap_or_default()) });
+            if let Some(done) = done.borrow_mut().take() {
+                done(reply);
+            }
+            if let Ok(disconnect) = karakulak_browser::get(&port_for_reply, "disconnect").dyn_into::<js_sys::Function>() {
+                let _ = disconnect.call0(&port_for_reply);
+            }
+        });
+        let on_message = karakulak_browser::get(&port, "onMessage");
+        if let Ok(add) = karakulak_browser::get(&on_message, "addListener").dyn_into::<js_sys::Function>() {
+            let _ = add.call1(&on_message, listener.as_ref());
+        }
+        listener.forget();
+        if let Ok(post) = karakulak_browser::get(&port, "postMessage").dyn_into::<js_sys::Function>() {
+            let _ = post.call1(&port, &object(&[("cmd", "bluetooth-pair".into()), ("path", path.into())]));
+        }
+    });
+}
+
 #[component]
 fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
     let bluetooth = RwSignal::new(None::<Bluetooth>);
     let found = RwSignal::new(Vec::<FoundDevice>::new());
     let scanning = RwSignal::new(false);
     let pairing = RwSignal::new(None::<String>);
+    // A code the device being paired wants typed or confirmed.
+    let code = RwSignal::new(None::<String>);
     let update = move |b| bluetooth.set(b);
     run::<Bluetooth>("bluetooth", vec![], on_error, update);
 
@@ -411,19 +462,39 @@ fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
                 };
                 let pair = move |_| {
                     pairing.set(Some(path.clone()));
+                    code.set(None);
                     let done_path = path.clone();
-                    run::<Bluetooth>("bluetooth-pair", vec![("path", path.clone().into())], on_error, move |b| {
-                        update(b);
+                    pair_over_port(path.clone(), move |c| code.set(Some(c)), move |result| {
+                        match result {
+                            Ok(b) => update(b),
+                            Err(e) => on_error.set(format!("{}: {e}", t("Hata", "Error"))),
+                        }
                         found.update(|f| f.retain(|d| d.path != done_path));
                         pairing.set(None);
+                        code.set(None);
                     });
                 };
                 view! {
                     <li>
                         <button on:click=pair>
                             <span>{device.name}</span>
-                            <small>{move || if is_pairing() { t("Eşleştiriliyor…", "Pairing…") } else { t("Eşleştir", "Pair") }}</small>
+                            <small>{let is_pairing = is_pairing.clone(); move || if is_pairing() { t("Eşleştiriliyor…", "Pairing…") } else { t("Eşleştir", "Pair") }}</small>
                         </button>
+                        <Show when={
+                            let is_pairing = is_pairing.clone();
+                            move || is_pairing() && code.get().is_some()
+                        }>
+                            <p class="hint">
+                                {move || {
+                                    let c = code.get().unwrap_or_default();
+                                    if karakulak_browser::turkish() {
+                                        format!("Cihazda {c} yazıp Enter'a bas, ya da kodun aynı olduğunu onayla.")
+                                    } else {
+                                        format!("Type {c} on the device and press Enter, or confirm the code matches.")
+                                    }
+                                }}
+                            </p>
+                        </Show>
                     </li>
                 }
             })
