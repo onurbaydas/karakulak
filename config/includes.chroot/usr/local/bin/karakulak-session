@@ -28,4 +28,5 @@ export XCURSOR_THEME=DMZ-White
 export KARAKULAK_NEW_WINDOW="firefox --profile $PROFILE --new-window"
 # Files opened from the file manager go to a new tab of the same Firefox.
 export KARAKULAK_OPEN="firefox --profile $PROFILE --new-tab"
-exec karakulak-compositor -- firefox --profile "$PROFILE"
+# Logs go to the journal: journalctl -t karakulak-compositor
+exec systemd-cat --identifier=karakulak-compositor karakulak-compositor -- firefox --profile "$PROFILE"

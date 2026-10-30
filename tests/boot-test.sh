@@ -22,7 +22,7 @@ kvm=""
 # shellcheck disable=SC2086 # $kvm holds several arguments
 qemu-system-x86_64 $kvm -m 4G -smp 2 \
 	-kernel "$work/vmlinuz" -initrd "$work/initrd.img" \
-	-append "boot=live components username=karakulak hostname=karakulak console=ttyS0 systemd.show_status=1" \
+	-append "boot=live components username=karakulak hostname=karakulak console=ttyS0 systemd.journald.forward_to_console=1" \
 	-cdrom "$iso" \
 	-device virtio-vga -display none \
 	-nic user,model=virtio-net-pci \
@@ -36,19 +36,26 @@ stop() {
 }
 trap stop EXIT
 
-echo "Waiting for auto-login..."
-deadline=$(($(date +%s) + 300))
-until grep -q "karakulak (automatic login)" "$out/console.log" 2>/dev/null; do
-	if [ "$(date +%s)" -gt "$deadline" ]; then
-		echo "No auto-login after 5 minutes. Console log:"
-		tail -50 "$out/console.log"
-		exit 1
-	fi
-	sleep 5
-done
+# The journal is forwarded to the serial console, so the log shows the
+# auto-login on tty1 and the compositor's own messages.
+wait_for() {
+	echo "Waiting for: $2"
+	deadline=$(($(date +%s) + $1))
+	until grep -a -q "$3" "$out/console.log" 2>/dev/null; do
+		if [ "$(date +%s)" -gt "$deadline" ]; then
+			echo "Gave up. End of the console log:"
+			tail -60 "$out/console.log"
+			exit 1
+		fi
+		sleep 5
+	done
+}
 
-echo "Logged in; giving the compositor and Firefox time to start..."
-sleep 90
+wait_for 300 "auto-login" "New session .* of user karakulak"
+wait_for 120 "the compositor to light up a screen" "screen connected"
+
+echo "Giving Firefox time to start..."
+sleep 60
 echo "screendump $work/screen.ppm" | socat - UNIX-CONNECT:"$work/monitor.sock" >/dev/null
 sleep 2
 python3 "$(dirname "$0")/check_screen.py" "$work/screen.ppm" "$out/screen.png"

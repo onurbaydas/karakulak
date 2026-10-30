@@ -59,6 +59,10 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-latest
+    # One at a time: parallel runs would both commit the same .xpi files.
+    concurrency:
+      group: sign-extensions
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
