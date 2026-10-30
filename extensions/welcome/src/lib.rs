@@ -1,7 +1,7 @@
 //! First-run welcome page. The user picks a privacy level, which is applied
 //! through `browser.privacy`. Telemetry is off at every level via policy.
 
-use karakulak_browser::{call, get, object};
+use karakulak_browser::{call, get, object, t};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use wasm_bindgen::prelude::*;
@@ -88,13 +88,28 @@ pub async fn open_welcome_if_needed() -> Result<(), JsValue> {
     Ok(())
 }
 
-const LEVELS: [(&str, &str, &str); 3] = [
-    ("standard", "Standart", "Firefox'un kendi ayarları. Her site sorunsuz çalışır."),
-    ("strict", "Sıkı", "İzleyiciler her yerde engellenir, çerezler sitelere göre ayrılır."),
+/// (code, Turkish title, English title, Turkish text, English text)
+const LEVELS: [(&str, &str, &str, &str, &str); 3] = [
+    (
+        "standard",
+        "Standart",
+        "Standard",
+        "Firefox'un kendi ayarları. Her site sorunsuz çalışır.",
+        "Firefox's own settings. Every site works.",
+    ),
+    (
+        "strict",
+        "Sıkı",
+        "Strict",
+        "İzleyiciler her yerde engellenir, çerezler sitelere göre ayrılır.",
+        "Trackers are blocked everywhere, cookies are kept apart per site.",
+    ),
     (
         "paranoid",
         "Paranoyak",
+        "Paranoid",
         "Parmak izine karşı koruma açılır, WebRTC ve şifre kaydetme kapanır. Bazı siteler bozulabilir.",
+        "Fingerprinting protection on, WebRTC and password saving off. Some sites may break.",
     ),
 ];
 
@@ -104,7 +119,8 @@ fn Welcome() -> impl IntoView {
     let (status, set_status) = signal(String::new());
     spawn_local(async move { set_chosen.set(chosen_level().await) });
 
-    let buttons = LEVELS.map(|(name, title, text)| {
+    let buttons = LEVELS.map(|(name, title_tr, title_en, text_tr, text_en)| {
+        let (title, text) = (t(title_tr, title_en), t(text_tr, text_en));
         let click = move |_| {
             spawn_local(async move {
                 match apply(name).await {
@@ -112,7 +128,7 @@ fn Welcome() -> impl IntoView {
                         set_chosen.set(Some(name.to_string()));
                         set_status.set("Kaydedildi. Bu sekmeyi kapatabilirsin.".into());
                     }
-                    Err(e) => set_status.set(format!("Ayar uygulanamadı: {e}")),
+                    Err(e) => set_status.set(format!("{}: {e}", t("Ayar uygulanamadı", "Could not apply the setting"))),
                 }
             })
         };
@@ -130,9 +146,8 @@ fn Welcome() -> impl IntoView {
     view! {
         <main>
             <img class="logo" src="logo.svg" alt="" />
-            <h1>"Karakulak'a hoş geldin"</h1>
-            <p>"Gizlilik seviyeni seç. Sonra istediğin zaman değiştirebilirsin."</p>
-            <p class="en">"Welcome to Karakulak. Choose your privacy level."</p>
+            <h1>{t("Karakulak'a hoş geldin", "Welcome to Karakulak")}</h1>
+            <p>{t("Gizlilik seviyeni seç. Sonra istediğin zaman değiştirebilirsin.", "Choose your privacy level. You can change it any time in Settings.")}</p>
             {buttons}
             <p id="status" role="status">{status}</p>
         </main>

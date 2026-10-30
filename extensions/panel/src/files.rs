@@ -5,6 +5,8 @@ use leptos::prelude::*;
 use serde::Deserialize;
 use wasm_bindgen::JsValue;
 
+use karakulak_browser::t;
+
 use crate::run;
 
 #[derive(Clone, Deserialize)]
@@ -69,10 +71,10 @@ fn date_text(secs: Option<u64>) -> String {
         return String::new();
     };
     let date = js_sys::Date::new(&JsValue::from_f64(secs as f64 * 1000.0));
-    String::from(date.to_locale_date_string("tr-TR", &JsValue::UNDEFINED))
+    String::from(date.to_locale_date_string(karakulak_browser::locale(), &JsValue::UNDEFINED))
         + " "
         + &String::from(date.to_locale_time_string_with_options(
-            "tr-TR",
+            karakulak_browser::locale(),
             &karakulak_browser::object(&[("hour", "2-digit".into()), ("minute", "2-digit".into())]),
         ))
 }
@@ -140,7 +142,7 @@ pub fn Files() -> impl IntoView {
         }
     };
     let new_folder = move |_| {
-        if let Some(name) = ask("Yeni klasörün adı:", "Yeni klasör") {
+        if let Some(name) = ask(t("Yeni klasörün adı:", "Name of the new folder:"), t("Yeni klasör", "New folder")) {
             run::<()>("files-mkdir", vec![("path", current().into()), ("name", name.into())], set_error, move |_| {
                 reload()
             });
@@ -151,7 +153,7 @@ pub fn Files() -> impl IntoView {
             return;
         };
         let old = path.rsplit('/').next().unwrap_or_default().to_string();
-        if let Some(name) = ask("Yeni ad:", &old) {
+        if let Some(name) = ask(t("Yeni ad:", "New name:"), &old) {
             run::<()>("files-rename", vec![("path", path.into()), ("name", name.into())], set_error, move |_| {
                 reload()
             });
@@ -283,7 +285,7 @@ pub fn Files() -> impl IntoView {
                             <div class="disk">
                                 <button on:click=open_disk>{disk.name}</button>
                                 <Show when=move || disk.mounted.is_some()>
-                                    <button title="Çıkar" on:click=eject.clone()>"⏏"</button>
+                                    <button title={t("Çıkar", "Eject")} on:click=eject.clone()>"⏏"</button>
                                 </Show>
                             </div>
                         }
@@ -293,28 +295,28 @@ pub fn Files() -> impl IntoView {
             <main>
                 <header class="toolbar">
                     <button title="Geri" prop:disabled=move || history.get().is_empty() on:click=back>"←"</button>
-                    <button title="Üst klasör" on:click=up>"↑"</button>
+                    <button title={t("Üst klasör", "Parent folder")} on:click=up>"↑"</button>
                     <span class="path">{move || listing.get().map(|l| l.path).unwrap_or_default()}</span>
-                    <button on:click=new_folder>"Yeni klasör"</button>
-                    <button prop:disabled=move || selected.get().len() != 1 on:click=rename>"Yeniden adlandır"</button>
-                    <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(false)>"Kopyala"</button>
-                    <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(true)>"Kes"</button>
-                    <button prop:disabled=move || clipboard.get().is_none() on:click=paste>"Yapıştır"</button>
-                    <button class="danger" prop:disabled=move || selected.get().is_empty() on:click=trash>"Çöpe at"</button>
+                    <button on:click=new_folder>{t("Yeni klasör", "New folder")}</button>
+                    <button prop:disabled=move || selected.get().len() != 1 on:click=rename>{t("Yeniden adlandır", "Rename")}</button>
+                    <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(false)>{t("Kopyala", "Copy")}</button>
+                    <button prop:disabled=move || selected.get().is_empty() on:click=move |_| copy(true)>{t("Kes", "Cut")}</button>
+                    <button prop:disabled=move || clipboard.get().is_none() on:click=paste>{t("Yapıştır", "Paste")}</button>
+                    <button class="danger" prop:disabled=move || selected.get().is_empty() on:click=trash>{t("Çöpe at", "Move to trash")}</button>
                     <label>
                         <input type="checkbox" prop:checked=hidden on:change=toggle_hidden />
-                        "Gizli"
+                        {t("Gizli", "Hidden")}
                     </label>
                 </header>
                 <p class="error" role="alert">{error}</p>
                 <table>
                     <thead>
-                        <tr><th>"Ad"</th><th>"Boyut"</th><th>"Değiştirilme"</th></tr>
+                        <tr><th>{t("Ad", "Name")}</th><th>{t("Boyut", "Size")}</th><th>{t("Değiştirilme", "Modified")}</th></tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </table>
                 <Show when=move || listing.get().is_some_and(|l| l.truncated)>
-                    <p class="note">"Bu klasörde çok fazla dosya var, ilk 3000 tanesi gösteriliyor."</p>
+                    <p class="note">{t("Bu klasörde çok fazla dosya var, ilk 3000 tanesi gösteriliyor.", "This folder has too many files; the first 3000 are shown.")}</p>
                 </Show>
             </main>
         </div>

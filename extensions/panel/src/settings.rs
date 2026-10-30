@@ -4,7 +4,7 @@
 use leptos::prelude::*;
 use serde::Deserialize;
 
-use karakulak_browser::{call, object};
+use karakulak_browser::{call, object, t, turkish};
 use leptos::task::spawn_local;
 
 use crate::run;
@@ -54,7 +54,7 @@ fn ScreenSettings(screen: Screen, screens: RwSignal<Vec<Screen>>, on_error: Writ
         <section class="card">
             <h2>{screen.name}</h2>
             <label>
-                "Çözünürlük"
+                {t("Çözünürlük", "Resolution")}
                 <select on:change=move |ev| {
                     if let Some(mode) = event_target_value(&ev).parse::<usize>().ok().and_then(|i| modes.get(i)) {
                         apply_mode(*mode, scale);
@@ -62,7 +62,7 @@ fn ScreenSettings(screen: Screen, screens: RwSignal<Vec<Screen>>, on_error: Writ
                 }>{options}</select>
             </label>
             <label>
-                "Ölçek"
+                {t("Ölçek", "Scale")}
                 <select on:change=move |ev| {
                     if let Ok(scale) = event_target_value(&ev).parse::<f64>() {
                         apply(current, scale);
@@ -149,10 +149,10 @@ fn SoundSettings(on_error: WriteSignal<String>) -> impl IntoView {
             let mic_level = d.inputs.iter().find(|i| i.default).map_or(0.0, |i| i.level);
             view! {
                 <section class="card">
-                    <label>"Çıkış" {device_select(d.outputs, "set-sound-output", on_error, update)}</label>
-                    <label>"Mikrofon" {device_select(d.inputs, "set-sound-input", on_error, update)}</label>
+                    <label>{t("Çıkış", "Output")} {device_select(d.outputs, "set-sound-output", on_error, update)}</label>
+                    <label>{t("Mikrofon", "Microphone")} {device_select(d.inputs, "set-sound-input", on_error, update)}</label>
                     <label>
-                        "Mikrofon seviyesi"
+                        {t("Mikrofon seviyesi", "Microphone level")}
                         <input
                             type="range"
                             min="0"
@@ -210,9 +210,9 @@ fn VpnSettings(on_error: WriteSignal<String>) -> impl IntoView {
                         let id = vpn.id.clone();
                         view! {
                             <label>
-                                <span>{vpn.name} <small class="hint">{if vpn.active { "Bağlı" } else { "Kapalı" }}</small></span>
+                                <span>{vpn.name} <small class="hint">{if vpn.active { t("Bağlı", "Connected") } else { t("Kapalı", "Off") }}</small></span>
                                 <button class="danger" on:click={move |_| run::<Vec<Vpn>>("vpn-remove", vec![("id", id.clone().into())], on_error, update)}>
-                                    "Sil"
+                                    {t("Sil", "Remove")}
                                 </button>
                             </label>
                         }
@@ -220,10 +220,10 @@ fn VpnSettings(on_error: WriteSignal<String>) -> impl IntoView {
                     .collect_view()
             }}
             <label>
-                "WireGuard dosyası ekle"
+                {t("WireGuard dosyası ekle", "Add a WireGuard file")}
                 <input type="file" accept=".conf" on:change=add />
             </label>
-            <p class="hint">"VPN sağlayıcının (Mullvad, Proton...) verdiği .conf dosyasını seç. Panelden açıp kapatabilirsin."</p>
+            <p class="hint">{t("VPN sağlayıcının (Mullvad, Proton...) verdiği .conf dosyasını seç. Panelden açıp kapatabilirsin.", "Choose the .conf file from your VPN provider (Mullvad, Proton...). Switch it on and off in the panel.")}</p>
         </section>
     }
 }
@@ -247,16 +247,16 @@ fn BrightnessSettings(on_error: WriteSignal<String>) -> impl IntoView {
             .into_iter()
             .map(|screen| {
                 let how = match screen.method.as_str() {
-                    "backlight" => "ekran ışığıyla",
-                    "ddc" => "monitörün kendisiyle (DDC/CI)",
-                    _ => "yazılımla",
+                    "backlight" => t("ekran ışığıyla", "with the backlight"),
+                    "ddc" => t("monitörün kendisiyle (DDC/CI)", "by the monitor itself (DDC/CI)"),
+                    _ => t("yazılımla", "in software"),
                 };
                 let id = screen.id.clone();
                 let software = screen.software;
                 view! {
                     <section class="card">
                         <label>
-                            <span>{format!("{}: yazılımla karart", screen.name)} <small class="hint">{format!("Şu an {how} ayarlanıyor.")}</small></span>
+                            <span>{format!("{}: {}", screen.name, t("yazılımla karart", "dim in software"))} <small class="hint">{if turkish() { format!("Şu an {how} ayarlanıyor.") } else { format!("Currently set {how}.") }}</small></span>
                             <input
                                 type="checkbox"
                                 prop:checked=software
@@ -278,18 +278,26 @@ struct Night {
     mode: String,
 }
 
-const NIGHT: [(&str, &str); 3] = [("off", "Kapalı"), ("evening", "Akşamları (20:00 - 07:00)"), ("on", "Her zaman")];
-
-/// Recommended extensions: privacy-respecting, from addons.mozilla.org.
-const EXTENSIONS: [(&str, &str, &str); 5] = [
-    ("uBlock Origin", "Reklam ve izleyici engelleyici", "https://addons.mozilla.org/firefox/addon/ublock-origin/"),
-    ("Bitwarden", "Açık kaynak şifre yöneticisi", "https://addons.mozilla.org/firefox/addon/bitwarden-password-manager/"),
-    ("Firefox Multi-Account Containers", "Siteleri birbirinden ayrı kutularda aç", "https://addons.mozilla.org/firefox/addon/multi-account-containers/"),
-    ("Dark Reader", "Her siteyi koyu temada göster", "https://addons.mozilla.org/firefox/addon/darkreader/"),
-    ("SponsorBlock", "YouTube videolarındaki sponsor kısımlarını atla", "https://addons.mozilla.org/firefox/addon/sponsorblock/"),
+const NIGHT: [(&str, &str, &str); 3] = [
+    ("off", "Kapalı", "Off"),
+    ("evening", "Akşamları (20:00 - 07:00)", "In the evening (20:00 - 07:00)"),
+    ("on", "Her zaman", "Always"),
 ];
 
-const PRIVACY: [(&str, &str); 3] = [("standard", "Standart"), ("strict", "Sıkı"), ("paranoid", "Paranoyak")];
+/// Recommended extensions: privacy-respecting, from addons.mozilla.org.
+const EXTENSIONS: [(&str, &str, &str, &str); 5] = [
+    ("uBlock Origin", "Reklam ve izleyici engelleyici", "Blocks ads and trackers", "https://addons.mozilla.org/firefox/addon/ublock-origin/"),
+    ("Bitwarden", "Açık kaynak şifre yöneticisi", "Open source password manager", "https://addons.mozilla.org/firefox/addon/bitwarden-password-manager/"),
+    ("Firefox Multi-Account Containers", "Siteleri birbirinden ayrı kutularda aç", "Keeps sites apart in separate containers", "https://addons.mozilla.org/firefox/addon/multi-account-containers/"),
+    ("Dark Reader", "Her siteyi koyu temada göster", "Shows every site in a dark theme", "https://addons.mozilla.org/firefox/addon/darkreader/"),
+    ("SponsorBlock", "YouTube videolarındaki sponsor kısımlarını atla", "Skips sponsored parts of YouTube videos", "https://addons.mozilla.org/firefox/addon/sponsorblock/"),
+];
+
+const PRIVACY: [(&str, &str, &str); 3] = [
+    ("standard", "Standart", "Standard"),
+    ("strict", "Sıkı", "Strict"),
+    ("paranoid", "Paranoyak", "Paranoid"),
+];
 
 #[component]
 fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
@@ -303,7 +311,7 @@ fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
             view! {
                 <section class="card">
                     <label>
-                        "Dil"
+                        {t("Dil", "Language")}
                         <select on:change=move |ev| {
                             let args = vec![("language", event_target_value(&ev).into())];
                             run::<Regional>("set-language", args, on_error, update);
@@ -311,9 +319,9 @@ fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
                             {LANGUAGES.map(|(code, name)| view! { <option value=code selected=r.language == code>{name}</option> })}
                         </select>
                     </label>
-                    <p class="hint">"Dil değişikliği bir sonraki girişte uygulanır."</p>
+                    <p class="hint">{t("Dil değişikliği bir sonraki girişte uygulanır.", "A new language applies at the next login.")}</p>
                     <label>
-                        "Klavye"
+                        {t("Klavye", "Keyboard")}
                         <select on:change=move |ev| {
                             if let Some((layout, variant, _)) = event_target_value(&ev).parse::<usize>().ok().and_then(|i| KEYBOARDS.get(i)) {
                                 let args = vec![("layout", (*layout).into()), ("variant", (*variant).into())];
@@ -328,7 +336,7 @@ fn RegionSettings(on_error: WriteSignal<String>) -> impl IntoView {
                         </select>
                     </label>
                     <label>
-                        "Saat dilimi"
+                        {t("Saat dilimi", "Time zone")}
                         <select on:change=move |ev| {
                             let args = vec![("timezone", event_target_value(&ev).into())];
                             run::<Regional>("set-timezone", args, on_error, update);
@@ -363,21 +371,21 @@ fn PrivacySettings(on_error: WriteSignal<String>) -> impl IntoView {
         spawn_local(async move {
             match privacy_message(object(&[("level", chosen.clone().into())])).await {
                 Ok(_) => level.set(Some(chosen)),
-                Err(e) => on_error.set(format!("Hata: {e}")),
+                Err(e) => on_error.set(format!("{}: {e}", t("Hata", "Error"))),
             }
         });
     };
     view! {
         <section class="card">
             <label>
-                "Gizlilik seviyesi"
+                {t("Gizlilik seviyesi", "Privacy level")}
                 <select on:change=change>
-                    {PRIVACY.map(|(code, name)| {
-                        view! { <option value=code selected=move || level.get().as_deref() == Some(code)>{name}</option> }
+                    {PRIVACY.map(|(code, tr, en)| {
+                        view! { <option value=code selected=move || level.get().as_deref() == Some(code)>{t(tr, en)}</option> }
                     })}
                 </select>
             </label>
-            <p class="hint">"Telemetri her seviyede kapalıdır."</p>
+            <p class="hint">{t("Telemetri her seviyede kapalıdır.", "Telemetry is off at every level.")}</p>
         </section>
     }
 }
@@ -401,29 +409,29 @@ fn SystemSettings(on_error: WriteSignal<String>) -> impl IntoView {
     );
 
     let update_text = move || match updates.get() {
-        Some(u) if u.state == "activating" => "Güncelleniyor…".to_string(),
-        Some(u) if u.state == "failed" => "Son güncelleme başarısız oldu.".to_string(),
-        Some(u) if u.pending == 0 => "Sistem güncel.".to_string(),
-        Some(u) => format!("{} güncelleme bekliyor.", u.pending),
+        Some(u) if u.state == "activating" => t("Güncelleniyor…", "Updating…").to_string(),
+        Some(u) if u.state == "failed" => t("Son güncelleme başarısız oldu.", "The last update failed.").to_string(),
+        Some(u) if u.pending == 0 => t("Sistem güncel.", "The system is up to date.").to_string(),
+        Some(u) => format!("{} {}", u.pending, t("güncelleme bekliyor.", "updates waiting.")),
         None => String::new(),
     };
 
     view! {
         <section class="card">
             <label>
-                <span>"Güncellemeler" <small class="hint">{update_text}</small></span>
+                <span>t("Güncellemeler", "Updates") <small class="hint">{update_text}</small></span>
                 <button
                     prop:disabled=move || updates.get().is_some_and(|u| u.state == "activating")
                     on:click={move |_| run::<Updates>("update-now", vec![], on_error, move |u| updates.set(u))}
                 >
-                    "Şimdi güncelle"
+                    {t("Şimdi güncelle", "Update now")}
                 </button>
             </label>
-            <p class="hint">"Güvenlik güncellemeleri her gün kendiliğinden kurulur."</p>
+            <p class="hint">{t("Güvenlik güncellemeleri her gün kendiliğinden kurulur.", "Security updates install themselves every day.")}</p>
         </section>
         <section class="card">
             <label>
-                "Güvenlik duvarı"
+                {t("Güvenlik duvarı", "Firewall")}
                 <input
                     type="checkbox"
                     prop:checked=move || firewall.get().is_some_and(|f| f.on)
@@ -433,18 +441,18 @@ fn SystemSettings(on_error: WriteSignal<String>) -> impl IntoView {
                     }
                 />
             </label>
-            <p class="hint">"Açıkken dışarıdan bu bilgisayara bağlantı kurulamaz. Kapatmak yeniden başlatana kadar geçerlidir."</p>
+            <p class="hint">{t("Açıkken dışarıdan bu bilgisayara bağlantı kurulamaz. Kapatmak yeniden başlatana kadar geçerlidir.", "While on, nothing can connect to this computer from outside. Turning it off lasts until the next restart.")}</p>
         </section>
         <section class="card">
             <label>
-                "Yazıcılar"
+                {t("Yazıcılar", "Printers")}
                 <button on:click=move |_| {
                     spawn_local(async move {
                         let _ = call("tabs.create", &[object(&[("url", "http://localhost:631/".into())])]).await;
                     });
-                }>"Yazıcı ayarlarını aç"</button>
+                }>{t("Yazıcı ayarlarını aç", "Open printer settings")}</button>
             </label>
-            <p class="hint">"Ağdaki ve USB'deki çoğu yazıcı sürücü kurmadan çalışır."</p>
+            <p class="hint">{t("Ağdaki ve USB'deki çoğu yazıcı sürücü kurmadan çalışır.", "Most network and USB printers work without installing drivers.")}</p>
         </section>
     }
 }
@@ -456,17 +464,17 @@ fn NightLight(on_error: WriteSignal<String>) -> impl IntoView {
     view! {
         <section class="card">
             <label>
-                "Gece ışığı"
+                {t("Gece ışığı", "Night light")}
                 <select on:change=move |ev| {
                     let args = vec![("mode", event_target_value(&ev).into())];
                     run::<Night>("night-light", args, on_error, move |n| mode.set(n.map(|n| n.mode)));
                 }>
-                    {NIGHT.map(|(code, name)| {
-                        view! { <option value=code selected=move || mode.get().as_deref() == Some(code)>{name}</option> }
+                    {NIGHT.map(|(code, tr, en)| {
+                        view! { <option value=code selected=move || mode.get().as_deref() == Some(code)>{t(tr, en)}</option> }
                     })}
                 </select>
             </label>
-            <p class="hint">"Ekranı sarıya kaydırır, akşamları gözü daha az yorar."</p>
+            <p class="hint">{t("Ekranı sarıya kaydırır, akşamları gözü daha az yorar.", "Shifts the screen towards yellow, easier on the eyes in the evening.")}</p>
         </section>
     }
 }
@@ -475,7 +483,8 @@ fn NightLight(on_error: WriteSignal<String>) -> impl IntoView {
 fn Extensions() -> impl IntoView {
     view! {
         <section class="card">
-            {EXTENSIONS.map(|(name, about, url)| {
+            {EXTENSIONS.map(|(name, about_tr, about_en, url)| {
+                let about = t(about_tr, about_en);
                 view! {
                     <label>
                         <span>{name} <small class="hint">{about}</small></span>
@@ -483,11 +492,11 @@ fn Extensions() -> impl IntoView {
                             spawn_local(async move {
                                 let _ = call("tabs.create", &[object(&[("url", url.into())])]).await;
                             });
-                        }>"Firefox'a ekle"</button>
+                        }>{t("Firefox'a ekle", "Add to Firefox")}</button>
                     </label>
                 }
             })}
-            <p class="hint">"Mozilla'nın eklenti mağazasında açılır, kurmak için orada \"Firefox'a ekle\"ye bas."</p>
+            <p class="hint">{t("Mozilla'nın eklenti mağazasında açılır, kurmak için orada \"Firefox'a ekle\"ye bas.", "Opens in Mozilla's add-on store; press \"Add to Firefox\" there.")}</p>
         </section>
     }
 }
@@ -500,9 +509,9 @@ pub fn Settings() -> impl IntoView {
 
     view! {
         <main class="settings">
-            <h1>"Ayarlar"</h1>
+            <h1>{t("Ayarlar", "Settings")}</h1>
             <p class="error" role="alert">{error}</p>
-            <h2 class="group">"Ekranlar"</h2>
+            <h2 class="group">{t("Ekranlar", "Screens")}</h2>
             {move || {
                 screens
                     .get()
@@ -511,19 +520,19 @@ pub fn Settings() -> impl IntoView {
                     .collect_view()
             }}
             <BrightnessSettings on_error=set_error />
-            <p class="hint">"Parlaklık tuşları ekranı değiştirmiyorsa \"yazılımla karart\"ı aç."</p>
+            <p class="hint">{t("Parlaklık tuşları ekranı değiştirmiyorsa \"yazılımla karart\"ı aç.", "If the brightness keys do not change a screen, turn on \"dim in software\".")}</p>
             <NightLight on_error=set_error />
-            <h2 class="group">"Bölge ve dil"</h2>
+            <h2 class="group">{t("Bölge ve dil", "Region and language")}</h2>
             <RegionSettings on_error=set_error />
-            <h2 class="group">"Gizlilik"</h2>
+            <h2 class="group">{t("Gizlilik", "Privacy")}</h2>
             <PrivacySettings on_error=set_error />
-            <h2 class="group">"Ses"</h2>
+            <h2 class="group">{t("Ses", "Sound")}</h2>
             <SoundSettings on_error=set_error />
             <h2 class="group">"VPN"</h2>
             <VpnSettings on_error=set_error />
-            <h2 class="group">"Sistem"</h2>
+            <h2 class="group">{t("Sistem", "System")}</h2>
             <SystemSettings on_error=set_error />
-            <h2 class="group">"Önerilen eklentiler"</h2>
+            <h2 class="group">{t("Önerilen eklentiler", "Recommended extensions")}</h2>
             <Extensions />
         </main>
     }

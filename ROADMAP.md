@@ -114,7 +114,7 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] WireGuard VPN: Ayarlar'dan dosya yükle, panelden aç/kapa
 - [x] Ses cihazı seçimi, mikrofon seviyesi
 - [x] Kesirli ölçek (%125, %150, %175...), keskin çizim (fractional-scale, viewporter)
-- [ ] İngilizce arayüz (sistem diline göre)
+- [x] İngilizce arayüz (tarayıcının diline göre Türkçe ya da İngilizce)
 - [ ] Ekran büyüteci (Super+artı/eksi)
 - [ ] Bluetooth'ta kod isteyen cihazlar
 

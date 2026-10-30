@@ -44,3 +44,22 @@ fn message(error: JsValue) -> String {
         .or_else(|| error.as_string())
         .unwrap_or_else(|| format!("{error:?}"))
 }
+
+/// The Turkish or the English text, by the browser's language.
+pub fn t(tr: &'static str, en: &'static str) -> &'static str {
+    if turkish() { tr } else { en }
+}
+
+pub fn turkish() -> bool {
+    thread_local! {
+        static TURKISH: bool = get(&get(&js_sys::global(), "navigator"), "language")
+            .as_string()
+            .is_some_and(|l| l.starts_with("tr"));
+    }
+    TURKISH.with(|t| *t)
+}
+
+/// Locale for dates and times, matching `t`.
+pub fn locale() -> &'static str {
+    t("tr-TR", "en-GB")
+}

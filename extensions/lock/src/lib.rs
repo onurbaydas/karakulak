@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use karakulak_browser::{call, get, object};
+use karakulak_browser::{call, get, object, t};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use serde::Deserialize;
@@ -53,11 +53,11 @@ async fn close_other_tabs() {
 fn clock() -> (String, String) {
     let now = js_sys::Date::new_0();
     let time = now.to_locale_time_string_with_options(
-        "tr-TR",
+        karakulak_browser::locale(),
         &object(&[("hour", "2-digit".into()), ("minute", "2-digit".into())]),
     );
     let date = now.to_locale_date_string(
-        "tr-TR",
+        karakulak_browser::locale(),
         &object(&[("weekday", "long".into()), ("day", "numeric".into()), ("month", "long".into())]),
     );
     (time.into(), date.into())
@@ -87,9 +87,9 @@ fn Lock() -> impl IntoView {
         spawn_local(async move {
             if let Err(e) = unlock(entered).await {
                 set_status.set(if e == "wrong password" {
-                    "Şifre yanlış.".into()
+                    t("Şifre yanlış.", "Wrong password.").into()
                 } else {
-                    format!("Hata: {e}")
+                    format!("{}: {e}", t("Hata", "Error"))
                 });
             }
             set_checking.set(false);
@@ -104,7 +104,7 @@ fn Lock() -> impl IntoView {
             <form on:submit=submit>
                 <input
                     type="password"
-                    placeholder="Şifre"
+                    placeholder={t("Şifre", "Password")}
                     autofocus
                     required
                     prop:disabled=checking

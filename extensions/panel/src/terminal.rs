@@ -7,7 +7,7 @@ use std::num::NonZeroU16;
 
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use js_sys::{Function, Promise};
-use karakulak_browser::{call, get, object};
+use karakulak_browser::{call, get, object, t};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use wasm_bindgen::{JsCast, JsValue, prelude::Closure};
@@ -270,7 +270,7 @@ pub fn Terminal() -> impl IntoView {
             }}
         </pre>
         <Show when=move || ended.get()>
-            <p class="ended">"Oturum kapandı. Yeni bir terminal için sekmeyi yenile."</p>
+            <p class="ended">{t("Oturum kapandı. Yeni bir terminal için sekmeyi yenile.", "The session ended. Reload the tab for a new terminal.")}</p>
         </Show>
     }
 }

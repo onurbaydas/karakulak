@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use karakulak_browser::{call, get, object};
+use karakulak_browser::{call, get, object, t};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 
@@ -15,11 +15,11 @@ struct Site {
 fn clock() -> (String, String) {
     let now = js_sys::Date::new_0();
     let time = now.to_locale_time_string_with_options(
-        "tr-TR",
+        karakulak_browser::locale(),
         &object(&[("hour", "2-digit".into()), ("minute", "2-digit".into())]),
     );
     let date = now.to_locale_date_string(
-        "tr-TR",
+        karakulak_browser::locale(),
         &object(&[("weekday", "long".into()), ("day", "numeric".into()), ("month", "long".into())]),
     );
     (time.into(), date.into())
@@ -68,7 +68,7 @@ pub fn NewTab() -> impl IntoView {
             <time>{move || time.get().0}</time>
             <p class="date">{move || time.get().1}</p>
             <form on:submit=search>
-                <input type="search" placeholder="Ara" autofocus bind:value=query />
+                <input type="search" placeholder={t("Ara", "Search")} autofocus bind:value=query />
             </form>
             <nav class="sites">
                 <For each=move || sites.get() key=|s| s.url.clone() let:site>

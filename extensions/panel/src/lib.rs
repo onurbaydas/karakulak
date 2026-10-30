@@ -8,7 +8,7 @@ mod newtab;
 mod settings;
 mod terminal;
 
-use karakulak_browser::{call, object};
+use karakulak_browser::{call, object, t};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use serde::de::DeserializeOwned;
@@ -93,34 +93,34 @@ fn run<T: DeserializeOwned + 'static>(
     spawn_local(async move {
         match send::<T>(cmd, &args).await {
             Ok(result) => done(result),
-            Err(error) => on_error.set(format!("Hata: {error}")),
+            Err(error) => on_error.set(format!("{}: {error}", t("Hata", "Error"))),
         }
     });
 }
 
 fn battery_text(battery: &Battery) -> String {
     let status = match battery.status.as_deref() {
-        Some("Charging") => "şarj oluyor",
-        Some("Discharging") => "pilde",
-        Some("Full") => "dolu",
-        Some("Not charging") => "şarj olmuyor",
+        Some("Charging") => t("şarj oluyor", "charging"),
+        Some("Discharging") => t("pilde", "on battery"),
+        Some("Full") => t("dolu", "full"),
+        Some("Not charging") => t("şarj olmuyor", "not charging"),
         Some(other) => other,
         None => "",
     };
     match battery.capacity {
-        Some(capacity) => format!("Pil %{capacity}, {status}"),
-        None => format!("Pil {status}"),
+        Some(capacity) => format!("{} %{capacity}, {status}", t("Pil", "Battery")),
+        None => format!("{} {status}", t("Pil", "Battery")),
     }
 }
 
 fn clock() -> (String, String) {
     let now = js_sys::Date::new_0();
     let time = now.to_locale_time_string_with_options(
-        "tr-TR",
+        karakulak_browser::locale(),
         &object(&[("hour", "2-digit".into()), ("minute", "2-digit".into())]),
     );
     let date = now.to_locale_date_string(
-        "tr-TR",
+        karakulak_browser::locale(),
         &object(&[
             ("weekday", "long".into()),
             ("day", "numeric".into()),
@@ -181,7 +181,7 @@ fn Volume(on_error: WriteSignal<String>) -> impl IntoView {
                 <section class="row">
                     <button
                         class="icon"
-                        title="Sessize al"
+                        title={t("Sessize al", "Mute")}
                         on:click={move |_| run::<Level>("toggle-mute", vec![], on_error, move |v| volume.set(v))}
                     >
                         {if v.muted { "🔇" } else { "🔊" }}
@@ -190,7 +190,7 @@ fn Volume(on_error: WriteSignal<String>) -> impl IntoView {
                         type="range"
                         min="0"
                         max="100"
-                        aria-label="Ses"
+                        aria-label={t("Ses", "Sound")}
                         prop:value=percent(v.level)
                         on:change=move |ev| {
                             let level = slider_level(&ev);
@@ -225,7 +225,7 @@ fn Brightness(on_error: WriteSignal<String>) -> impl IntoView {
                                 type="range"
                                 min="0"
                                 max="100"
-                                aria-label=format!("Parlaklık: {}", screen.name)
+                                aria-label=format!("{}: {}", t("Parlaklık", "Brightness"), screen.name)
                                 prop:value=percent(screen.level)
                                 on:change=move |ev| {
                                     let args = vec![("id", id.clone().into()), ("level", slider_level(&ev))];
@@ -303,9 +303,9 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
                             let ssid = ssid.clone();
                             move || {
                                 if network.active {
-                                    "Bağlı ✓".to_string()
+                                    t("Bağlı ✓", "Connected ✓").to_string()
                                 } else if connecting.get().as_deref() == Some(ssid.as_str()) {
-                                    "Bağlanıyor…".to_string()
+                                    t("Bağlanıyor…", "Connecting…").to_string()
                                 } else {
                                     format!("%{}{}", network.signal, if network.secure { " 🔒" } else { "" })
                                 }
@@ -332,7 +332,7 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
                                 </button>
                                 <Show when=is_selected>
                                     <Show when=move || failed.get()>
-                                        <p class="hint">"Bağlanamadı, şifreyi gir."</p>
+                                        <p class="hint">{t("Bağlanamadı, şifreyi gir.", "Could not connect, enter the password.")}</p>
                                     </Show>
                                     <form on:submit={
                                         let ssid = ssid.clone();
@@ -341,8 +341,8 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
                                             connect(ssid.clone());
                                         }
                                     }>
-                                        <input type="password" placeholder="Şifre" required bind:value=password />
-                                        <button type="submit">"Bağlan"</button>
+                                        <input type="password" placeholder={t("Şifre", "Password")} required bind:value=password />
+                                        <button type="submit">{t("Bağlan", "Connect")}</button>
                                     </form>
                                 </Show>
                             </li>
@@ -378,9 +378,9 @@ fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
                 .into_iter()
                 .map(|device| {
                     let (cmd, label) = if device.connected {
-                        ("bluetooth-disconnect", "Bağlantıyı kes")
+                        ("bluetooth-disconnect", t("Bağlantıyı kes", "Disconnect"))
                     } else {
-                        ("bluetooth-connect", "Bağlan")
+                        ("bluetooth-connect", t("Bağlan", "Connect"))
                     };
                     let path = device.path.clone();
                     view! {
@@ -422,7 +422,7 @@ fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
                     <li>
                         <button on:click=pair>
                             <span>{device.name}</span>
-                            <small>{move || if is_pairing() { "Eşleştiriliyor…" } else { "Eşleştir" }}</small>
+                            <small>{move || if is_pairing() { t("Eşleştiriliyor…", "Pairing…") } else { t("Eşleştir", "Pair") }}</small>
                         </button>
                     </li>
                 }
@@ -443,11 +443,11 @@ fn BluetoothSection(on_error: WriteSignal<String>) -> impl IntoView {
                             run::<Bluetooth>("bluetooth-power", vec![("on", on.into())], on_error, update)
                         }}
                     />
-                    "Açık"
+                    {t("Açık", "On")}
                 </label>
                 <ul class="list">{paired_devices}</ul>
                 <button class="scan" prop:disabled=move || scanning.get() on:click=scan>
-                    {move || if scanning.get() { "Aranıyor…" } else { "Cihaz ara" }}
+                    {move || if scanning.get() { t("Aranıyor…", "Searching…") } else { t("Cihaz ara", "Find devices") }}
                 </button>
                 <ul class="list">{new_devices}</ul>
             </details>
@@ -494,7 +494,7 @@ fn Panel() -> impl IntoView {
         match send::<Battery>("battery", &[]).await {
             Ok(Some(b)) => set_battery.set(battery_text(&b)),
             Ok(None) => {}
-            Err(e) => set_error.set(format!("Hata: {e}")),
+            Err(e) => set_error.set(format!("{}: {e}", t("Hata", "Error"))),
         }
     });
 
@@ -512,7 +512,7 @@ fn Panel() -> impl IntoView {
                 spawn_local(async move {
                     let _ = call("tabs.create", &[object(&[("url", "files.html".into())])]).await;
                 });
-            }}>"Dosyalar"</button>
+            }}>{t("Dosyalar", "Files")}</button>
             <button on:click={move |_| {
                 spawn_local(async move {
                     let _ = call("tabs.create", &[object(&[("url", "terminal.html".into())])]).await;
@@ -522,11 +522,11 @@ fn Panel() -> impl IntoView {
                 spawn_local(async move {
                     let _ = call("tabs.create", &[object(&[("url", "settings.html".into())])]).await;
                 });
-            }}>"Ayarlar"</button>
-            <button on:click={move |_| run::<()>("lock", vec![], set_error, |_| {})}>"Kilitle"</button>
-            <PowerButton label="Uyku" cmd="suspend" on_error=set_error />
-            <PowerButton label="Yeniden başlat" cmd="reboot" on_error=set_error />
-            <PowerButton label="Kapat" cmd="poweroff" on_error=set_error />
+            }}>{t("Ayarlar", "Settings")}</button>
+            <button on:click={move |_| run::<()>("lock", vec![], set_error, |_| {})}>{t("Kilitle", "Lock")}</button>
+            <PowerButton label={t("Uyku", "Sleep")} cmd="suspend" on_error=set_error />
+            <PowerButton label={t("Yeniden başlat", "Restart")} cmd="reboot" on_error=set_error />
+            <PowerButton label={t("Kapat", "Shut down")} cmd="poweroff" on_error=set_error />
         </div>
         <p id="error" role="alert">{error}</p>
     }
@@ -536,11 +536,15 @@ fn Panel() -> impl IntoView {
 pub fn start() {
     // One module for the popup and the pages it opens.
     let path = window().location().pathname().unwrap_or_default();
+    let title = |tr, en| document().set_title(t(tr, en));
     if path.ends_with("/files.html") {
+        title("Dosyalar", "Files");
         mount_to_body(files::Files);
     } else if path.ends_with("/newtab.html") {
+        title("Yeni sekme", "New tab");
         mount_to_body(newtab::NewTab);
     } else if path.ends_with("/settings.html") {
+        title("Ayarlar", "Settings");
         mount_to_body(settings::Settings);
     } else if path.ends_with("/terminal.html") {
         mount_to_body(terminal::Terminal);
