@@ -72,8 +72,10 @@ jobs:
           path: compositor/target/release/karakulak-compositor
 
   # Signs extensions whose version changed and commits the signed .xpi files.
+  # Only for releases (version tags) or by hand: every upload counts against
+  # Mozilla's rate limit, and every version goes through review.
   sign:
-    if: github.event_name != 'pull_request'
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     needs: test
     runs-on: ubuntu-latest
     # One at a time: parallel runs would both commit the same .xpi files.

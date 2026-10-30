@@ -80,7 +80,7 @@ submit() {
 		mv "$tmp"/out/*.xpi "$out/$name.xpi"
 		echo "Signed: $name"
 	else
-		echo "Not signed yet: $name (submitted; run again after Mozilla approves it)" >&2
+		echo "Not signed yet: $name (upload failed or still in review; see the message above)" >&2
 	fi
 	rm -r "$tmp"
 }
