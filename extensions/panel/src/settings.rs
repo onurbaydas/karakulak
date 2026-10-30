@@ -171,6 +171,74 @@ fn SoundSettings(on_error: WriteSignal<String>) -> impl IntoView {
 }
 
 #[derive(Clone, Deserialize)]
+struct Tor {
+    on: bool,
+    ready: bool,
+}
+
+/// Firefox's own proxy setting: Tor's SOCKS port, names resolved through Tor.
+async fn set_firefox_proxy(tor: bool) -> Result<(), String> {
+    if tor {
+        let value = object(&[
+            ("proxyType", "manual".into()),
+            ("socks", "127.0.0.1:9050".into()),
+            ("socksVersion", 5.into()),
+            ("proxyDNS", true.into()),
+        ]);
+        call("proxy.settings.set", &[object(&[("value", value)])]).await?;
+    } else {
+        call("proxy.settings.clear", &[object(&[])]).await?;
+    }
+    Ok(())
+}
+
+#[component]
+fn TorSettings(on_error: WriteSignal<String>) -> impl IntoView {
+    let tor = RwSignal::new(None::<Tor>);
+    let refresh = move || run::<Tor>("tor", vec![], on_error, move |s| tor.set(s));
+    refresh();
+    // Tor takes a while to connect the first time.
+    set_interval(
+        move || {
+            if tor.get_untracked().is_some_and(|s| s.on && !s.ready) {
+                refresh();
+            }
+        },
+        std::time::Duration::from_secs(3),
+    );
+    let toggle = move |_| {
+        let on = !tor.get_untracked().is_some_and(|s| s.on);
+        run::<Tor>("set-tor", vec![("on", on.into())], on_error, move |s| {
+            tor.set(s);
+            spawn_local(async move {
+                if let Err(e) = set_firefox_proxy(on).await {
+                    on_error.set(format!("{}: {e}", t("Hata", "Error")));
+                }
+            });
+        });
+    };
+    let status = move || match tor.get() {
+        Some(s) if s.on && s.ready => t("Tor'a bağlı.", "Connected to Tor."),
+        Some(s) if s.on => t("Tor'a bağlanıyor…", "Connecting to Tor…"),
+        _ => t("Kapalı.", "Off."),
+    };
+    view! {
+        <section class="card">
+            <label>
+                <span>{t("Tor ile gezin", "Browse through Tor")} <small class="hint">{status}</small></span>
+                <input type="checkbox" prop:checked=move || tor.get().is_some_and(|s| s.on) on:change=toggle />
+            </label>
+            <p class="hint">
+                {t(
+                    "Firefox'un trafiği Tor ağından geçer, siteler gerçek adresini görmez. Tor Browser kadar anonim değildir: tarayıcının parmak izi yine ayırt edilebilir. En güçlü koruma için gizlilik seviyesini Paranoyak yap.",
+                    "Firefox's traffic goes through the Tor network, so sites do not see your real address. It is not as anonymous as Tor Browser: the browser's fingerprint can still stand out. For the strongest protection, set the privacy level to Paranoid.",
+                )}
+            </p>
+        </section>
+    }
+}
+
+#[derive(Clone, Deserialize)]
 pub struct Vpn {
     pub id: String,
     pub name: String,
@@ -529,6 +597,8 @@ pub fn Settings() -> impl IntoView {
             <PrivacySettings on_error=set_error />
             <h2 class="group">{t("Ses", "Sound")}</h2>
             <SoundSettings on_error=set_error />
+            <h2 class="group">"Tor"</h2>
+            <TorSettings on_error=set_error />
             <h2 class="group">"VPN"</h2>
             <VpnSettings on_error=set_error />
             <h2 class="group">{t("Sistem", "System")}</h2>

@@ -123,9 +123,9 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Görev yöneticisi: işlemci, bellek, disk; çalışan programlar, kapatma
 - [x] Bildirimler: USB, güncelleme, pil, indirme
 - [x] Kısayollar sayfası (Super+/)
-- [ ] Dosya yöneticisinde arama ve resim önizleme
-- [ ] Misafir oturumu: iz bırakmaz, çıkınca her şey silinir
-- [ ] Tor ile gezinme (Ayarlar'dan aç/kapa)
+- [x] Dosya yöneticisinde arama ve resim önizleme
+- [x] Misafir oturumu: iz bırakmaz, çıkınca her şey silinir
+- [x] Tor ile gezinme (Ayarlar'dan aç/kapa)
 - [ ] Yedekleme: ayarlar ve Firefox profili USB'ye, geri yükleme
 
 ## v1.0 — İlk sürüm

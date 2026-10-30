@@ -132,3 +132,25 @@ pub fn set_firewall(on: bool) -> Result<Value, String> {
     std::thread::sleep(std::time::Duration::from_millis(500));
     firewall()
 }
+
+const TOR_UNIT: &str = "tor.service";
+const TOR_INSTANCE: &str = "tor@default.service";
+const TOR_SOCKS: &str = "127.0.0.1:9050";
+
+/// `{"on", "ready"}`: the Tor service runs, and its SOCKS port answers.
+pub fn tor() -> Result<Value, String> {
+    let bus = Connection::system().map_err(err)?;
+    let on = unit_state(&bus, TOR_INSTANCE)? == "active";
+    let ready = on
+        && std::net::TcpStream::connect_timeout(&TOR_SOCKS.parse().unwrap(), std::time::Duration::from_millis(300)).is_ok();
+    Ok(json!({ "on": on, "ready": ready }))
+}
+
+/// Starts or stops the Tor service; Firefox's proxy is set by the page.
+pub fn set_tor(on: bool) -> Result<Value, String> {
+    let bus = Connection::system().map_err(err)?;
+    let method = if on { "StartUnit" } else { "StopUnit" };
+    let _: zbus::zvariant::OwnedObjectPath = systemd(&bus)?.call(method, &(TOR_UNIT, "replace")).map_err(err)?;
+    std::thread::sleep(std::time::Duration::from_millis(500));
+    tor()
+}

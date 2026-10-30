@@ -21,7 +21,8 @@
       "panel@karakulak": {
         "installation_mode": "force_installed",
         "install_url": "file:///usr/share/karakulak/extensions/panel.xpi",
-        "default_area": "navbar"
+        "default_area": "navbar",
+        "private_browsing": true
       },
       "lock@karakulak": {
         "installation_mode": "force_installed",

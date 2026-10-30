@@ -15,7 +15,7 @@ polkit.addRule(function (action, subject) {
         if (unit == "karakulak-update.service" && verb == "start") {
             return polkit.Result.YES;
         }
-        if (unit == "nftables.service" && (verb == "start" || verb == "stop")) {
+        if ((unit == "nftables.service" || unit == "tor.service") && (verb == "start" || verb == "stop")) {
             return polkit.Result.YES;
         }
     }

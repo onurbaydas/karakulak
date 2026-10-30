@@ -32,6 +32,7 @@ udisks2
 locales
 unattended-upgrades
 nftables
+tor
 firefox-l10n-tr
 
 # Printing (driverless printers work without extra drivers)

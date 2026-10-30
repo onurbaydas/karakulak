@@ -5,3 +5,5 @@ set -e
 sed -i -e 's/^# *\(tr_TR.UTF-8 UTF-8\)/\1/' -e 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
 locale-gen
 systemctl enable nftables.service
+# Tor runs only when switched on in Settings.
+systemctl disable tor.service

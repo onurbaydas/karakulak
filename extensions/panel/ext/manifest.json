@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Karakulak Panel",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "description": "System panel for Karakulak: clock, battery, sound, brightness, Wi-Fi, Bluetooth and power.",
   "browser_specific_settings": {
     "gecko": {
@@ -22,7 +22,8 @@
     "search",
     "notifications",
     "downloads",
-    "alarms"
+    "alarms",
+    "proxy"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"

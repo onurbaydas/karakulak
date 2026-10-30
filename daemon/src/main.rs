@@ -105,6 +105,8 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "updates" => system::updates(),
         "update-now" => system::update_now(),
         "firewall" => system::firewall(),
+        "tor" => system::tor(),
+        "set-tor" => system::set_tor(msg["on"].as_bool().unwrap_or(false)),
         "set-firewall" => system::set_firewall(msg["on"].as_bool().unwrap_or(true)),
         "vpn-list" => vpn::list(),
         "vpn-import" => vpn::import(arg("name"), arg("config")),
