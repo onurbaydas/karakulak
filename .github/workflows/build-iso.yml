@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
@@ -28,7 +28,7 @@ jobs:
       - name: Extensions
         working-directory: extensions
         run: cargo clippy --target wasm32-unknown-unknown --release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: karakulakd
           path: daemon/target/release/karakulakd
@@ -37,7 +37,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-audit
@@ -54,7 +54,7 @@ jobs:
     container:
       image: rust:1-trixie
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: System libraries
         run: |
           apt-get update
@@ -66,7 +66,7 @@ jobs:
           rustup component add clippy
           cargo clippy --release
           cargo build --release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: karakulak-compositor
           path: compositor/target/release/karakulak-compositor
@@ -85,14 +85,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
       - uses: taiki-e/install-action@v2
         with:
           tool: wasm-pack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -127,14 +127,14 @@ jobs:
     container:
       image: debian:trixie
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: karakulakd
           path: daemon/target/release
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: karakulak-compositor
           path: compositor/target/release
@@ -149,7 +149,7 @@ jobs:
       # Clashing files or dpkg questions fail here, before the ISO build.
       - name: Install test
         run: tests/install-test.sh debs/*.deb
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: karakulak-deb
           path: debs/*.deb
@@ -162,22 +162,22 @@ jobs:
       image: debian:trixie
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Pick up the signed extensions the sign job may have just pushed.
           ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref }}
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: karakulakd
           path: config/includes.chroot/usr/bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: karakulak-compositor
           path: config/includes.chroot/usr/bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: karakulak-deb
           path: config/packages.chroot
@@ -193,7 +193,7 @@ jobs:
           lb config
           lb build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: karakulak-iso
           path: "*.iso"
@@ -206,8 +206,8 @@ jobs:
     if: ${{ !cancelled() && needs.iso.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: karakulak-iso
       - name: Tools
@@ -217,7 +217,7 @@ jobs:
           sudo chmod 666 /dev/kvm || true
       - name: Boot test
         run: tests/boot-test.sh *.iso boot-test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: boot-test
@@ -232,12 +232,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: karakulak-deb
           path: debs
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: karakulak-iso
           path: iso

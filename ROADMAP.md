@@ -148,8 +148,8 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [x] Açılış testi panel eklentisinin karakulakd ile konuştuğunu da kontrol eder
   (yeni panel imzalanana kadar uyarı, sonra zorunlu)
 - [ ] Bütün sayfaların ekran görüntüleri her derlemede
-- [ ] Eskiyen araçların güncellenmesi (GitHub eylemleri, wasm-pack)
-- [ ] CHANGELOG.md
+- [x] Eskiyen araçların güncellenmesi (GitHub eylemleri, wasm-pack)
+- [x] CHANGELOG.md
 
 ## v1.0 — İlk sürüm
 
