@@ -11,6 +11,7 @@ mod system;
 mod tasks;
 mod usb;
 mod vpn;
+mod watch;
 mod wifi;
 
 use serde_json::{json, Value};
@@ -84,6 +85,7 @@ fn handle(msg: &Value) -> Result<Value, String> {
         "vpn-set" => vpn::set_active(arg("id"), msg["on"].as_bool().unwrap_or(false)),
         "vpn-remove" => vpn::remove(arg("id")),
         "tasks" => tasks::overview(),
+        "watch" => watch::start(),
         "task-stop" => tasks::stop(num(msg, "pid"), msg["force"].as_bool().unwrap_or(false)),
         "term-open" => terminal::open(num(msg, "cols"), num(msg, "rows")),
         "term-input" => terminal::input(num(msg, "term"), arg("data")),
@@ -138,7 +140,7 @@ fn systemctl(action: &str) -> Result<Value, String> {
 }
 
 /// First battery found, or null on machines without one.
-fn battery() -> Value {
+pub fn battery() -> Value {
     let Ok(entries) = fs::read_dir("/sys/class/power_supply") else {
         return Value::Null;
     };

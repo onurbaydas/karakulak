@@ -5,6 +5,7 @@ use std::time::Duration;
 
 mod files;
 mod newtab;
+mod notify;
 mod settings;
 mod tasks;
 mod terminal;
@@ -628,7 +629,8 @@ pub fn start() {
         mount_to_body(settings::Settings);
     } else if path.ends_with("/terminal.html") {
         mount_to_body(terminal::Terminal);
-    } else {
+    } else if path.ends_with("/popup.html") {
         mount_to_body(Panel);
     }
+    // The background page (background.js) mounts nothing.
 }
