@@ -85,6 +85,9 @@ fn watch_battery() {
 
 /// Starts watching; events arrive until the port closes.
 pub fn start() -> Result<serde_json::Value, String> {
+    // Firefox passes this to its own output, which the session logs; the boot
+    // test looks for it as proof that the panel extension runs.
+    eprintln!("karakulakd: watching system events");
     std::thread::spawn(|| {
         if let Err(e) = watch_usb() {
             eprintln!("not watching USB: {e}");

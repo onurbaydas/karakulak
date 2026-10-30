@@ -145,7 +145,8 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 ## v0.9.1 — Bakım
 
 - [x] Paket kurulum testi CI'da: dosya çakışmaları ISO'dan önce, dakikalar içinde yakalanır
-- [ ] Açılış testi Karakulak'ın kendi sayfalarının açıldığını da kontrol eder
+- [x] Açılış testi panel eklentisinin karakulakd ile konuştuğunu da kontrol eder
+  (yeni panel imzalanana kadar uyarı, sonra zorunlu)
 - [ ] Bütün sayfaların ekran görüntüleri her derlemede
 - [ ] Eskiyen araçların güncellenmesi (GitHub eylemleri, wasm-pack)
 - [ ] CHANGELOG.md

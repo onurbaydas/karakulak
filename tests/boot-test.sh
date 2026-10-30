@@ -51,11 +51,30 @@ wait_for() {
 	done
 }
 
+# Like wait_for, but only warns: for checks that need extension versions
+# Mozilla has not signed yet.
+expect() {
+	echo "Expecting: $2"
+	deadline=$(($(date +%s) + $1))
+	until grep -a -q "$3" "$out/console.log" 2>/dev/null; do
+		if [ "$(date +%s)" -gt "$deadline" ]; then
+			echo "WARNING: not seen: $2"
+			return 0
+		fi
+		sleep 5
+	done
+	echo "Seen: $2"
+}
+
 wait_for 300 "auto-login" "New session .* of user karakulak"
 wait_for 120 "the compositor to light up a screen" "screen connected"
 
-echo "Giving Firefox time to start..."
-sleep 60
+# The panel extension starts karakulakd for notifications: proof that the
+# signed extension, native messaging and karakulakd all work.
+expect 120 "Karakulak's panel extension talking to karakulakd" "karakulakd: watching system events"
+
+echo "Giving Firefox time to settle..."
+sleep 30
 echo "screendump $work/screen.ppm" | socat - UNIX-CONNECT:"$work/monitor.sock" >/dev/null
 sleep 2
 python3 "$(dirname "$0")/check_screen.py" "$work/screen.ppm" "$out/screen.png"
