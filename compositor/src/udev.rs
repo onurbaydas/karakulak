@@ -252,6 +252,15 @@ pub fn init_udev(event_loop: &mut EventLoop<State>, state: &mut State) -> Result
     }
 
     let udev = state.udev.as_mut().unwrap();
+    // Without a GPU driver the device renders in software under its card
+    // node, not under the render node udev named as primary.
+    if udev.gpus.single_renderer(&primary_gpu).is_err()
+        && let Some(node) = udev.backends.values().find_map(|d| d.render_node)
+    {
+        info!("rendering on {node} instead of {primary_gpu}");
+        udev.primary_gpu = node;
+    }
+    let primary_gpu = udev.primary_gpu;
     let renderer = udev.gpus.single_renderer(&primary_gpu)?;
     state.shm_state.update_formats(renderer.shm_formats());
 
