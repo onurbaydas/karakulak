@@ -1,0 +1,17 @@
+Package: karakulak
+Architecture: amd64
+Version: 0.9.7
+Priority: optional
+Section: x11
+Maintainer: Karakulak <onurbaydas@users.noreply.github.com>
+Depends: plymouth, plymouth-themes, firefox, libseat1, libinput10, libgbm1, libdisplay-info2, libxkbcommon0, libegl1, libgles2, dmz-cursor-theme, libpam-systemd, dbus-user-session, xdg-desktop-portal, xdg-desktop-portal-wlr, libgl1-mesa-dri, fonts-noto-core, fonts-noto-color-emoji, pipewire-audio, pulseaudio-utils, bluez, power-profiles-daemon, udisks2, pciutils, locales, unattended-upgrades, nftables, tor, firefox-l10n-tr, cups, cups-filters, ipp-usb, network-manager, wpasupplicant, ca-certificates, dosfstools, efibootmgr, grub2-common, grub-pc-bin, grub-efi-amd64-bin, grub-efi-amd64-signed, shim-signed, polkitd, sudo, keyboard-configuration, iproute2, systemd-timesyncd, xdg-user-dirs, libavcodec61
+Filename: pool/main/karakulak_0.9.7_amd64.deb
+Size: 4938596
+MD5sum: f029f3668835916cd4dd837fc2685895
+SHA1: 9b551123ef0cc19bc4c5c9590257aba77cd9b092
+SHA256: 46ece76242b84ba9132eda2ba9180ec60e68e61951baf0e40f972c99ff87b891
+SHA512: 29137cf118a9880b8048131f14266059feb458c36016ca9af14b5293f97d3a939e9a7507ca9ab4a5ed6437b1c51de5bd755a2376f22343eb253bc8d6bd230362
+Homepage: https://github.com/onurbaydas/karakulak
+Description: Karakulak: the browser is the desktop
+ Karakulak's compositor, system helper, Firefox extensions and settings.
+
