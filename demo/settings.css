@@ -1,0 +1,144 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f3ee;
+  --fg: #1d1a16;
+  --muted: #6b645b;
+  --card: #ffffff;
+  --line: #e6e0d6;
+  --accent: #b5651d;
+  --danger: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151310;
+    --fg: #eee8df;
+    --muted: #a39a8e;
+    --card: #221f1a;
+    --line: #2f2b25;
+    --danger: #f2766b;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.5 system-ui, sans-serif;
+}
+
+.settings {
+  width: min(40rem, 100% - 2rem);
+  margin: 2rem auto;
+}
+
+h2.group {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.card {
+  margin: 0.75rem 0;
+  padding: 1rem 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+select {
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+}
+
+.error {
+  min-height: 1em;
+  color: var(--danger);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+label small.hint {
+  display: block;
+}
+
+button {
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button.danger {
+  color: var(--danger);
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+a {
+  color: var(--accent);
+}
+
+.keys {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.keys td {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.keys td:first-child {
+  width: 16rem;
+}
+
+kbd {
+  font: 0.9rem ui-monospace, monospace;
+  padding: 0.15rem 0.45rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0.3rem;
+}
+
+.report {
+  max-height: 60vh;
+  overflow: auto;
+  padding: 1rem;
+  font: 0.8rem/1.4 ui-monospace, monospace;
+  white-space: pre-wrap;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}

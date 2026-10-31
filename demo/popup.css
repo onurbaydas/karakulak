@@ -1,0 +1,213 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f3ee;
+  --fg: #1d1a16;
+  --muted: #6b645b;
+  --card: #ffffff;
+  --accent: #b5651d;
+  --danger: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151310;
+    --fg: #eee8df;
+    --muted: #a39a8e;
+    --card: #221f1a;
+    --danger: #f2766b;
+  }
+}
+
+body {
+  width: 20rem;
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+#clock {
+  display: block;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+#date,
+#battery {
+  margin: 0.25rem 0;
+  color: var(--muted);
+}
+
+.power {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+button {
+  padding: 0.45rem;
+  font: inherit;
+  color: inherit;
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  border-color: var(--accent);
+}
+
+button.confirm {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+#error {
+  color: var(--danger);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.row input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.icon {
+  width: 2rem;
+  padding: 0.25rem;
+  text-align: center;
+}
+
+details {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: var(--card);
+  border-radius: 0.5rem;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list button {
+  width: 100%;
+  margin: 0.15rem 0;
+  text-align: left;
+  background: var(--bg);
+}
+
+.list button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.list button.active {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.list button.active small {
+  color: var(--accent);
+}
+
+.list small {
+  color: var(--muted);
+}
+
+.list form {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.25rem 0;
+}
+
+.list form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: 0.4rem;
+}
+
+.hint {
+  margin: 0.25rem 0 0;
+  color: var(--danger);
+  font-size: 0.9em;
+}
+
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.screen small {
+  color: var(--muted);
+}
+
+.device select {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0.3rem;
+  font: inherit;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+}
+
+.scan {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: var(--bg);
+}
+
+.power .wide {
+  grid-column: 1 / -1;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layout {
+  padding: 0.2rem 0.5rem;
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+}
+
+.modes button {
+  font-size: 0.85rem;
+}
+
+.modes button.active {
+  border-color: var(--accent);
+  font-weight: 600;
+}

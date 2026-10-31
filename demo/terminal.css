@@ -1,0 +1,28 @@
+:root {
+  --bg: #151310;
+  --fg: #eee8df;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+.terminal {
+  margin: 0;
+  padding: 8px;
+  min-height: calc(100vh - 16px);
+  color: var(--fg);
+  font: 14px/18px "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+  outline: none;
+  white-space: pre;
+}
+
+.ended {
+  position: fixed;
+  bottom: 0;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  color: #f2766b;
+  font: 14px system-ui, sans-serif;
+}
