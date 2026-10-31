@@ -24,8 +24,7 @@ Version 0.9.7: everything for daily use is there. It boots, installs to disk
 (BIOS and UEFI) and updates itself; every build is tested in a virtual machine.
 What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
-The original author has stopped active development. The code is all here and
-the build is automatic, so anyone can pick it up: issues labelled
+Contributions are welcome. Issues labelled
 [good first issue](https://github.com/onurbaydas/karakulak/labels/good%20first%20issue)
 are small, described and a good place to start.
 

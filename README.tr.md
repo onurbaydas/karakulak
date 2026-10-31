@@ -25,8 +25,7 @@ kuruluyor (BIOS ve UEFI) ve kendini güncelliyor. Her derleme sanal makinede
 test ediliyor. Her sürümde neyin değiştiği [CHANGELOG.md](CHANGELOG.md)
 dosyasında.
 
-Projeyi başlatan kişi geliştirmeyi bıraktı. Kodun tamamı burada ve derleme
-kendiliğinden yapılıyor, yani isteyen devam ettirebilir.
+Katkıya açık.
 [good first issue](https://github.com/onurbaydas/karakulak/labels/good%20first%20issue)
 etiketli işler küçük, ne yapılacağı yazılı ve başlamak için iyi bir yer.
 
