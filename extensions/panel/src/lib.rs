@@ -3,6 +3,8 @@
 
 use std::time::Duration;
 
+#[cfg(feature = "demo")]
+mod demo;
 mod files;
 mod help;
 mod install;
@@ -77,6 +79,14 @@ struct Battery {
 
 /// Sends a command to karakulakd and returns its result.
 async fn send<T: DeserializeOwned>(cmd: &str, args: &[(&str, JsValue)]) -> Result<Option<T>, String> {
+    #[cfg(feature = "demo")]
+    return demo::reply(cmd, args).and_then(|v| serde_json::from_value(v).map_err(|e| e.to_string()));
+    #[cfg(not(feature = "demo"))]
+    return daemon_send(cmd, args).await;
+}
+
+#[cfg(not(feature = "demo"))]
+async fn daemon_send<T: DeserializeOwned>(cmd: &str, args: &[(&str, JsValue)]) -> Result<Option<T>, String> {
     let mut message = vec![("cmd", JsValue::from(cmd))];
     message.extend(args.iter().cloned());
     let reply = call("runtime.sendNativeMessage", &["karakulakd".into(), object(&message)]).await?;

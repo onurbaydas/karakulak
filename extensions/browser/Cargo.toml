@@ -9,3 +9,7 @@ license.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 js-sys.workspace = true
+
+[features]
+# No Firefox extension APIs: see call().
+demo = []

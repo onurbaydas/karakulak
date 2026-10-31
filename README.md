@@ -15,8 +15,9 @@ extension.
 
 <p align="center"><img src="docs/screenshots/newtab.png" alt="Karakulak's new tab page"></p>
 
+**[Try the live demo](https://onurbaydas.github.io/karakulak/demo/)** ·
 **[Download the ISO](https://github.com/onurbaydas/karakulak/releases/latest)** ·
-**[Screenshot tour](https://onurbaydas.github.io/karakulak/)**
+**[Website](https://onurbaydas.github.io/karakulak/)**
 
 ## Status
 

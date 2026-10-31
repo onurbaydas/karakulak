@@ -15,8 +15,9 @@ eklentisidir.
 
 <p align="center"><img src="docs/screenshots/newtab.png" alt="Karakulak'ın yeni sekme sayfası"></p>
 
+**[Canlı demoyu dene](https://onurbaydas.github.io/karakulak/demo/)** ·
 **[ISO'yu indir](https://github.com/onurbaydas/karakulak/releases/latest)** ·
-**[Ekran görüntüleriyle tur](https://onurbaydas.github.io/karakulak/)**
+**[Web sitesi](https://onurbaydas.github.io/karakulak/)**
 
 ## Durum
 
