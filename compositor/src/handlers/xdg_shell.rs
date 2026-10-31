@@ -39,6 +39,7 @@ impl XdgShellHandler for State {
         if was_lock {
             self.lock_window_gone();
         }
+        self.restart_session_when_empty();
     }
 
     fn new_popup(&mut self, surface: PopupSurface, _positioner: PositionerState) {

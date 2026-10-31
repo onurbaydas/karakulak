@@ -4,7 +4,7 @@ use smithay::{
     desktop::{PopupManager, Space, Window, WindowSurfaceType},
     input::{Seat, SeatState, pointer::CursorImageStatus},
     reexports::{
-        calloop::{EventLoop, Interest, LoopHandle, LoopSignal, Mode, PostAction, generic::Generic},
+        calloop::{EventLoop, Interest, LoopHandle, LoopSignal, Mode, PostAction, generic::Generic, timer::{TimeoutAction, Timer}},
         wayland_server::{
             Display, DisplayHandle,
             backend::{ClientData, ClientId, DisconnectReason},
@@ -198,6 +198,20 @@ impl State {
         }
     }
 
+    /// Closing the last tab quits Firefox and leaves an empty screen: start it
+    /// again. After a moment, so a Firefox restarting itself (an update) can
+    /// bring its own window back first.
+    pub fn restart_session_when_empty(&mut self) {
+        let _ = self.loop_handle.insert_source(Timer::from_duration(SESSION_RESTART_DELAY), |_, _, state| {
+            let windows = state.space.elements().filter(|w| smithay::utils::IsAlive::alive(*w)).count() + state.pending.len();
+            if windows == 0 && !state.lock.locked && !state.guest_active() {
+                tracing::info!("no windows left, starting the session again");
+                spawn_session();
+            }
+            TimeoutAction::Drop
+        });
+    }
+
     /// First commit of a new window: now its app id is known.
     pub fn map_new_window(&mut self, surface: &WlSurface) {
         let Some(index) = self
@@ -282,6 +296,20 @@ struct Floating(std::cell::Cell<bool>);
 
 /// Windows that keep their own size instead of filling a screen: dialogs
 /// (they have a parent), fixed-size windows, and Firefox's video popup.
+const SESSION_RESTART_DELAY: std::time::Duration = std::time::Duration::from_secs(3);
+
+/// Runs the command after `--`, or Firefox.
+pub fn spawn_session() {
+    let args: Vec<String> = std::env::args().skip_while(|a| a != "--").skip(1).collect();
+    let (program, rest) = match args.split_first() {
+        Some((program, rest)) => (program.as_str(), rest),
+        None => ("firefox", &[][..]),
+    };
+    if let Err(e) = std::process::Command::new(program).args(rest).spawn() {
+        tracing::error!("could not start {program}: {e}");
+    }
+}
+
 pub fn is_floating(window: &Window) -> bool {
     if window.user_data().get::<Floating>().is_some() {
         return true;

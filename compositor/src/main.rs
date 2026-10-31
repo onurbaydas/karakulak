@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     power::init(&mut event_loop);
     brightness::init(&mut event_loop, &mut state);
-    spawn_session();
+    state::spawn_session();
 
     event_loop.run(None, &mut state, |state| {
         state.space.refresh();
@@ -85,17 +85,5 @@ fn init_logging() {
         tracing_subscriber::fmt().with_env_filter(env_filter).init();
     } else {
         tracing_subscriber::fmt().init();
-    }
-}
-
-/// Runs the command after `--`, or Firefox.
-fn spawn_session() {
-    let args: Vec<String> = std::env::args().skip_while(|a| a != "--").skip(1).collect();
-    let (program, rest) = match args.split_first() {
-        Some((program, rest)) => (program.as_str(), rest),
-        None => ("firefox", &[][..]),
-    };
-    if let Err(e) = std::process::Command::new(program).args(rest).spawn() {
-        tracing::error!("could not start {program}: {e}");
     }
 }
