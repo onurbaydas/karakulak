@@ -3,6 +3,12 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
+## Unreleased
+
+- Closing the last tab no longer leaves an empty screen: Firefox (and the
+  panel with it) opens again.
+- No Wi-Fi section, and no "no Wi-Fi device" error, on computers without Wi-Fi.
+
 ## 0.9.7: Release candidate
 
 - Firefox speaks the system's language (Turkish by default) instead of always

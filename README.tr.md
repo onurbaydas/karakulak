@@ -13,10 +13,39 @@ eklentisidir.
 > *Karakulak*, Türkçede "kara kulak" demek. Dünya bu hayvanı bizim verdiğimiz
 > adla tanır: caracal.
 
+<p align="center"><img src="docs/screenshots/newtab.png" alt="Karakulak'ın yeni sekme sayfası"></p>
+
+**[ISO'yu indir](https://github.com/onurbaydas/karakulak/releases/latest)** ·
+**[Ekran görüntüleriyle tur](https://onurbaydas.github.io/karakulak/)**
+
 ## Durum
 
-Sürüm 0.9: günlük kullanım için gereken her şey var, 1.0'dan önce deneniyor.
-Her sürümde neyin değiştiği [CHANGELOG.md](CHANGELOG.md) dosyasında.
+Sürüm 0.9.7: günlük kullanım için gereken her şey var. Açılıyor, diske
+kuruluyor (BIOS ve UEFI) ve kendini güncelliyor. Her derleme sanal makinede
+test ediliyor. Her sürümde neyin değiştiği [CHANGELOG.md](CHANGELOG.md)
+dosyasında.
+
+Projeyi başlatan kişi geliştirmeyi bıraktı. Kodun tamamı burada ve derleme
+kendiliğinden yapılıyor, yani isteyen devam ettirebilir.
+[good first issue](https://github.com/onurbaydas/karakulak/labels/good%20first%20issue)
+etiketli işler küçük, ne yapılacağı yazılı ve başlamak için iyi bir yer.
+
+## Ekran görüntüleri
+
+| | |
+|---|---|
+| ![Panel](docs/screenshots/panel.png) | ![Dosyalar](docs/screenshots/files.png) |
+| ![Ayarlar](docs/screenshots/settings.png) | ![Görev yöneticisi](docs/screenshots/tasks.png) |
+| ![Terminal](docs/screenshots/terminal.png) | ![Kurulum](docs/screenshots/install.png) |
+
+## Sistem gereksinimleri
+
+- 64 bit x86 (Intel ya da AMD), 2 çekirdek
+- 4 GB bellek
+- En az 10 GB disk (20 GB önerilir)
+- BIOS ya da UEFI
+
+Sanal makinede ekran kartı olarak virtio'yu, UEFI için q35 makine tipini seç.
 
 ## İçinde neler var
 

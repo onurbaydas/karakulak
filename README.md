@@ -13,10 +13,39 @@ extension.
 > *Karakulak* means "black ear" in Turkish. The world knows this animal by the
 > name we gave it: the caracal.
 
+<p align="center"><img src="docs/screenshots/newtab.png" alt="Karakulak's new tab page"></p>
+
+**[Download the ISO](https://github.com/onurbaydas/karakulak/releases/latest)** ·
+**[Screenshot tour](https://onurbaydas.github.io/karakulak/)**
+
 ## Status
 
-Version 0.9: everything for daily use is there and is being tested before 1.0.
+Version 0.9.7: everything for daily use is there. It boots, installs to disk
+(BIOS and UEFI) and updates itself; every build is tested in a virtual machine.
 What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
+
+The original author has stopped active development. The code is all here and
+the build is automatic, so anyone can pick it up: issues labelled
+[good first issue](https://github.com/onurbaydas/karakulak/labels/good%20first%20issue)
+are small, described and a good place to start.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Panel](docs/screenshots/panel.png) | ![Files](docs/screenshots/files.png) |
+| ![Settings](docs/screenshots/settings.png) | ![Task manager](docs/screenshots/tasks.png) |
+| ![Terminal](docs/screenshots/terminal.png) | ![Install](docs/screenshots/install.png) |
+
+## System requirements
+
+- 64-bit x86 (Intel or AMD), 2 cores
+- 4 GB memory
+- A disk of at least 10 GB (20 GB recommended)
+- BIOS or UEFI
+
+In a virtual machine, choose the virtio display adapter, and a q35 machine
+for UEFI.
 
 ## What's in it
 
