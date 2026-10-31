@@ -26,7 +26,7 @@ fn proxy<'a>(bus: &Connection, path: &'a str, interface: &'a str) -> Result<Prox
     Proxy::new(bus, NM, path.to_owned(), interface).map_err(err)
 }
 
-fn wifi_device(bus: &Connection) -> Result<OwnedObjectPath, String> {
+fn wifi_device(bus: &Connection) -> Result<Option<OwnedObjectPath>, String> {
     let devices: Vec<OwnedObjectPath> = proxy(bus, NM_PATH, NM)?
         .call("GetDevices", &())
         .map_err(err)?;
@@ -35,10 +35,10 @@ fn wifi_device(bus: &Connection) -> Result<OwnedObjectPath, String> {
             .get_property("DeviceType")
             .map_err(err)?;
         if kind == DEVICE_TYPE_WIFI {
-            return Ok(device);
+            return Ok(Some(device));
         }
     }
-    Err("no Wi-Fi device".into())
+    Ok(None)
 }
 
 /// Saved Wi-Fi connections by network name.
@@ -63,10 +63,13 @@ fn saved(bus: &Connection) -> Result<HashMap<String, OwnedObjectPath>, String> {
 }
 
 /// Visible networks, strongest first, one entry per name:
-/// `[{"ssid", "signal", "secure", "active", "known"}]`
+/// `[{"ssid", "signal", "secure", "active", "known"}]`, or null without a
+/// Wi-Fi device.
 pub fn list() -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
-    let device = wifi_device(&bus)?;
+    let Some(device) = wifi_device(&bus)? else {
+        return Ok(Value::Null);
+    };
     let wireless = proxy(&bus, device.as_str(), WIRELESS)?;
 
     // Fresh results arrive in the background; this call only asks for them.
@@ -110,7 +113,7 @@ pub fn list() -> Result<Value, String> {
 /// missing password can be fixed by entering it again.
 pub fn connect(ssid: &str, password: &str) -> Result<Value, String> {
     let bus = Connection::system().map_err(err)?;
-    let device = wifi_device(&bus)?;
+    let device = wifi_device(&bus)?.ok_or("no Wi-Fi device")?;
     let root = OwnedObjectPath::try_from("/").map_err(err)?;
     let saved = saved(&bus)?.remove(ssid);
 

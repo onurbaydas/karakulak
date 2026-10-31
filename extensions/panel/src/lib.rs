@@ -252,7 +252,14 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
     let password = RwSignal::new(String::new());
     let connecting = RwSignal::new(None::<String>);
     let failed = RwSignal::new(false);
-    let refresh = move || run::<Vec<Network>>("wifi-list", vec![], on_error, move |n| networks.set(n.unwrap_or_default()));
+    // No Wi-Fi device (null): the section stays hidden.
+    let present = RwSignal::new(false);
+    let refresh = move || {
+        run::<Vec<Network>>("wifi-list", vec![], on_error, move |n| {
+            present.set(n.is_some());
+            networks.set(n.unwrap_or_default())
+        })
+    };
     refresh();
 
     // Didn't connect: ask for the password, which replaces the saved one.
@@ -293,69 +300,71 @@ fn Wifi(on_error: WriteSignal<String>) -> impl IntoView {
     };
 
     view! {
-        <details>
-            <summary>"Wi-Fi"</summary>
-            <ul class="list">
-                // Key on the state too, so a row redraws when it connects.
-                <For each=move || networks.get() key=|n| (n.ssid.clone(), n.active, n.known) let:network>
-                    {
-                        let ssid = network.ssid.clone();
-                        let is_selected = {
-                            let ssid = ssid.clone();
-                            move || selected.get().as_deref() == Some(ssid.as_str())
-                        };
-                        let status = {
-                            let ssid = ssid.clone();
-                            move || {
-                                if network.active {
-                                    t("Bağlı ✓", "Connected ✓").to_string()
-                                } else if connecting.get().as_deref() == Some(ssid.as_str()) {
-                                    t("Bağlanıyor…", "Connecting…").to_string()
-                                } else {
-                                    format!("%{}{}", network.signal, if network.secure { " 🔒" } else { "" })
+        <Show when=move || present.get()>
+            <details>
+                <summary>"Wi-Fi"</summary>
+                <ul class="list">
+                    // Key on the state too, so a row redraws when it connects.
+                    <For each=move || networks.get() key=|n| (n.ssid.clone(), n.active, n.known) let:network>
+                        {
+                            let ssid = network.ssid.clone();
+                            let is_selected = {
+                                let ssid = ssid.clone();
+                                move || selected.get().as_deref() == Some(ssid.as_str())
+                            };
+                            let status = {
+                                let ssid = ssid.clone();
+                                move || {
+                                    if network.active {
+                                        t("Bağlı ✓", "Connected ✓").to_string()
+                                    } else if connecting.get().as_deref() == Some(ssid.as_str()) {
+                                        t("Bağlanıyor…", "Connecting…").to_string()
+                                    } else {
+                                        format!("%{}{}", network.signal, if network.secure { " 🔒" } else { "" })
+                                    }
                                 }
-                            }
-                        };
-                        let pick = {
-                            let ssid = ssid.clone();
-                            move |_| {
-                                if network.active {
-                                    return;
+                            };
+                            let pick = {
+                                let ssid = ssid.clone();
+                                move |_| {
+                                    if network.active {
+                                        return;
+                                    }
+                                    if network.secure && !network.known {
+                                        selected.set(Some(ssid.clone()));
+                                    } else {
+                                        connect(ssid.clone());
+                                    }
                                 }
-                                if network.secure && !network.known {
-                                    selected.set(Some(ssid.clone()));
-                                } else {
-                                    connect(ssid.clone());
-                                }
-                            }
-                        };
-                        view! {
-                            <li>
-                                <button class:active=network.active on:click=pick>
-                                    <span>{network.ssid.clone()}</span>
-                                    <small>{status}</small>
-                                </button>
-                                <Show when=is_selected>
-                                    <Show when=move || failed.get()>
-                                        <p class="hint">{t("Bağlanamadı, şifreyi gir.", "Could not connect, enter the password.")}</p>
+                            };
+                            view! {
+                                <li>
+                                    <button class:active=network.active on:click=pick>
+                                        <span>{network.ssid.clone()}</span>
+                                        <small>{status}</small>
+                                    </button>
+                                    <Show when=is_selected>
+                                        <Show when=move || failed.get()>
+                                            <p class="hint">{t("Bağlanamadı, şifreyi gir.", "Could not connect, enter the password.")}</p>
+                                        </Show>
+                                        <form on:submit={
+                                            let ssid = ssid.clone();
+                                            move |ev| {
+                                                ev.prevent_default();
+                                                connect(ssid.clone());
+                                            }
+                                        }>
+                                            <input type="password" placeholder={t("Şifre", "Password")} required bind:value=password />
+                                            <button type="submit">{t("Bağlan", "Connect")}</button>
+                                        </form>
                                     </Show>
-                                    <form on:submit={
-                                        let ssid = ssid.clone();
-                                        move |ev| {
-                                            ev.prevent_default();
-                                            connect(ssid.clone());
-                                        }
-                                    }>
-                                        <input type="password" placeholder={t("Şifre", "Password")} required bind:value=password />
-                                        <button type="submit">{t("Bağlan", "Connect")}</button>
-                                    </form>
-                                </Show>
-                            </li>
+                                </li>
+                            }
                         }
-                    }
-                </For>
-            </ul>
-        </details>
+                    </For>
+                </ul>
+            </details>
+        </Show>
     }
 }
 
