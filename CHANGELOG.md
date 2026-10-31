@@ -3,7 +3,7 @@
 What changed in each version, for people using Karakulak. The roadmap with
 what is still to come is in [ROADMAP.md](ROADMAP.md) (Turkish).
 
-## 0.9.6: Release candidate
+## 0.9.7: Release candidate
 
 - Firefox speaks the system's language (Turkish by default) instead of always
   English, and no longer offers to translate Turkish pages.

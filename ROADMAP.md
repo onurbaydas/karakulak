@@ -179,12 +179,12 @@ tuşlar, touchpad ve pil uyarısı çalışıyor.
 - [ ] Sadece bütün diske kurulum; yanına kurmak ve şifreli disk sonra. O zamana
   kadar Debian'ın kurulum ekranı da açılış menüsünde kalıyor.
 
-## v0.9.6 — Sürüm adayı
+## v0.9.7 — Sürüm adayı
 
 - [x] Firefox sistemin dilinde açılıyor (varsayılan Türkçe)
 - [x] Otomatik kurulum testi hem BIOS hem UEFI ile
 - [x] Açılış testinin sayfa ekran görüntüleri gerçekten sayfaları gösteriyor
-- [ ] İlk yayın (v0.9.6): imzalı panel, kurulum sayfası, GitHub'da ISO
+- [ ] İlk yayın (v0.9.7): imzalı panel, kurulum sayfası, GitHub'da ISO
 
 ## v1.0 — İlk sürüm
 
